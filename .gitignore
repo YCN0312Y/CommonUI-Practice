@@ -1,0 +1,43 @@
+# ============================================
+#  Unreal Engine 项目 .gitignore
+#  仅跟踪: Config / Content / GameAssets / Plugins(源码) / Source
+#         YCNUIDemo.uproject / README.md / IDEA.md
+# ============================================
+
+# ---- 构建产物 / 引擎生成目录（根目录与 Plugins/*/ 下一并忽略）----
+Binaries/
+Intermediate/
+DerivedDataCache/
+Saved/
+Build/
+IncrementalBuild/
+*.VC.db
+*.VC.opendb
+*.opensdf
+*.sdf
+*.suo
+
+# ---- IDE / 工具目录 ----
+.vs/
+.vsconfig
+.vscode/
+.idea/
+.claude/
+*.sln
+*.xcodeproj
+*.xcworkspace
+
+# ---- 编译中间文件 ----
+*.obj
+*.pdb
+*.idb
+*.ilk
+*.exp
+*.lib
+
+# ---- 操作系统垃圾文件 ----
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store

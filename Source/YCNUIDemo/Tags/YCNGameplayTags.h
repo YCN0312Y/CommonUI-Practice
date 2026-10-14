@@ -1,0 +1,15 @@
+﻿
+#pragma once
+
+#include "NativeGameplayTags.h"
+
+namespace YCNGameplayTags
+{
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(YCN_WidgetStack_HUD);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(YCN_WidgetStack_Menu);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(YCN_WidgetStack_Modal);
+
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(YCN_Widget_AnyKey);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(YCN_Widget_MainMenu);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(YCN_Widget_Window);
+}

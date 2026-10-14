@@ -1,0 +1,42 @@
+# ============================================
+#  Git 属性配置
+#  - 二进制资源禁止行尾转换，避免资源损坏
+#  - 超过 GitHub 50MB 警告 / 100MB 硬限制的大文件走 Git LFS
+# ============================================
+
+# ---- 文本文件：提交时自动规范换行 ----
+*.cpp   text
+*.h     text
+*.cs    text
+*.ini   text
+*.lua   text
+*.md    text
+*.json  text
+*.uplugin text
+*.uproject text
+.gitattributes text
+.gitignore text
+
+# ---- 二进制资源：不做 diff / 不做换行转换 ----
+*.uasset binary
+*.umap   binary
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.tga    binary
+*.exr    binary
+*.hdr    binary
+*.ttf    binary
+*.otf    binary
+*.wav    binary
+*.fbx    binary
+*.obj    binary
+*.blend  binary
+*.mp4    binary
+*.psd    binary
+
+# ---- Git LFS：大文件（放在最后，优先级最高）----
+# GameAssets/UI/Painted UI.psd  = 106 MB（超过 100MB 硬限制，必须 LFS）
+*.psd filter=lfs diff=lfs merge=lfs -text
+# StarterContent 环境光照 HDRI = 64 MB（超过 50MB 警告阈值）
+Content/StarterContent/HDRI/HDRI_Epic_Courtyard_Daylight.uasset filter=lfs diff=lfs merge=lfs -text
