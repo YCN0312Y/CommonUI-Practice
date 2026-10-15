@@ -6,7 +6,7 @@
 #include "CommonTabListWidgetBase.h"
 #include "YCNWidget_TabListBase.generated.h"
 
-UCLASS()
+UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
 class YCNUIDEMO_API UYCNWidget_TabListBase : public UCommonTabListWidgetBase
 {
 	GENERATED_BODY()

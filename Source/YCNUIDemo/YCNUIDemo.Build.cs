@@ -18,6 +18,7 @@ public class YCNUIDemo : ModuleRules
             "Slate",
             "SlateCore",
             "CommonUI",
+            "CommonInput",
             "GameplayTags",
         });
     }
