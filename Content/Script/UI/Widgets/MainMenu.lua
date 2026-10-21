@@ -6,6 +6,7 @@
 -- @DATE ${date} ${time}
 --
 
+local PushWidget = UE.UYCNAsyncAction_PushWidget
 local PushConfirmation = UE.UYCNAsyncAction_PushConfirmation
 local YCNFunctionLibrary = UE.UYCNFunctionLibrary
 local WindowsType = UE.EConfirmationWindowsType
@@ -16,8 +17,12 @@ local M = UnLua.Class()
 
 function M:OnInitialized()
 
+    if self.Story then
+        self.Story.OnButtonBaseClicked:Add(self, M.OnClick_Story)
+    end
+
     if self.Quit then
-        self.Quit.OnButtonBaseClicked:Add(self, M.ClickQuit)
+        self.Quit.OnButtonBaseClicked:Add(self, M.OnClick_Quit)
     end
 
 end
@@ -31,7 +36,43 @@ end
 --function M:Tick(MyGeometry, InDeltaTime)
 --end
 
-function M:ClickQuit(Button)
+function M:OnClick_Story(Button)
+    if not PushWidget then
+        print("PushWidget无效!")
+        return 
+    end
+    local PC = self:GetOwningPC()
+    if not PC then
+        print("PC无效!")
+        return
+    end
+    local LoaddingTag = PC.WidgetTagList:Find("Loadding")
+    if not LoaddingTag then
+        print("LoaddingTag无效!")
+        return
+    end
+    local StackTag = PC.StackTagList:Find("Modal")
+    if not StackTag then
+        print("StackTag无效!")
+        return
+    end
+    if not YCNFunctionLibrary then
+        print("YCNFunctionLibrary无效!")
+        return
+    end
+    local FoundWidget = YCNFunctionLibrary.GetSoftWidgetByTag(LoaddingTag)
+    if not FoundWidget then
+        print("FoundWidget无效!")
+        return
+    end
+
+    local PushAction = PushWidget.PushSoftWidget(self, StackTag, FoundWidget)
+    if PushAction then
+        PushAction:Activate()
+    end
+end
+
+function M:OnClick_Quit(Button)
 
     --确认弹窗推送动作
     if not PushConfirmation then
@@ -74,13 +115,13 @@ function M:ClickQuit(Button)
     local Action = PushConfirmation.PushConfrimationWindow(self, WindowsType.YesNO, "退出游戏", "确定退出游戏吗？", SoftWidget)
 
     if Action then
-        Action.OnButtonClicked:Add(self, M.OnButtonClicked)
+        Action.OnButtonClicked:Add(self, M.OnConfrimationButtonClicked)
         Action:Activate()
     end
 
 end
 
-function M:OnButtonClicked(ClickedButtonType)
+function M:OnConfrimationButtonClicked(ClickedButtonType)
 
     if not ButtonType then
         return

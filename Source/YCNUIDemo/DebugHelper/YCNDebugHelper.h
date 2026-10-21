@@ -6,7 +6,7 @@ DEFINE_LOG_CATEGORY_STATIC(LogYCNCommonUI, Display, All);
 
 namespace YCNDebug
 {
-	void Print(const FString& InMessage, float InDisplayTime = 5.f)
+	inline void Print(const FString& InMessage, float InDisplayTime = 5.f)
 	{
 		if (GEngine)
 		{

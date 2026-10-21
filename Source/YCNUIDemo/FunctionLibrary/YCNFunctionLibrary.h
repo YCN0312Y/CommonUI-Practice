@@ -8,12 +8,18 @@
 #include "YCNFunctionLibrary.generated.h"
 
 class UYCNWidget_ActivatableWidgetBase;
+class UYCNWidget_MainStack;
+
 UCLASS()
 class YCNUIDEMO_API UYCNFunctionLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 	
 public:
+	//根据标签获取软引用控件
 	UFUNCTION(BlueprintPure, Category = "YCNFunctionLibrary")
 	static TSoftClassPtr<UYCNWidget_ActivatableWidgetBase>GetSoftWidgetByTag(FGameplayTag InWidgetTag);
+	//获取主堆栈控件
+	UFUNCTION(BlueprintPure, Category = "YCNFunctionLibrary")
+	static TSoftClassPtr<UYCNWidget_MainStack>GetMainStackWidget();
 };

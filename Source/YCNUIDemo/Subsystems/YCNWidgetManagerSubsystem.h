@@ -41,5 +41,6 @@ public:
 		const FText& InWinodwMessageText,
 		TFunction<void(EConfirmationWindowsButtonType)>ButtonClickCallback
 		);
+	void SetOwningMainStackBackground(bool bIsVisible);
 
 };

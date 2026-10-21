@@ -1,6 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "YCNUIDemo/UI/Widgets/YCNWidget_MainStack.h"
+#include "Components/Border.h"
 
 void UYCNWidget_MainStack::AddWidgetToStackList(const FGameplayTag& InStackTag, UCommonActivatableWidgetStack* InWidget)
 {
@@ -18,4 +19,9 @@ UCommonActivatableWidgetStack* UYCNWidget_MainStack::FindWidgetByTag(const FGame
 	}
 
 	return nullptr;
+}
+
+void UYCNWidget_MainStack::SetBackgroundVisible(bool bIsVisible)
+{
+	Background->SetVisibility(bIsVisible ? ESlateVisibility::HitTestInvisible : ESlateVisibility::Collapsed);
 }

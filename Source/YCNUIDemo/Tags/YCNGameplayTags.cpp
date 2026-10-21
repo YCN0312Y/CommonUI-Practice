@@ -10,4 +10,5 @@ namespace YCNGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(YCN_Widget_AnyKey, "YCN.Widget.AnyKey");
 	UE_DEFINE_GAMEPLAY_TAG(YCN_Widget_MainMenu, "YCN.Widget.MainMenu");
 	UE_DEFINE_GAMEPLAY_TAG(YCN_Widget_Window, "YCN.Widget.Window");
+	UE_DEFINE_GAMEPLAY_TAG(YCN_Widget_Loadding, "YCN.Widget.Loadding");
 }

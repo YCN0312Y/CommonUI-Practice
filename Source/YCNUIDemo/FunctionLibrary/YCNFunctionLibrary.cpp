@@ -15,3 +15,15 @@ TSoftClassPtr<UYCNWidget_ActivatableWidgetBase> UYCNFunctionLibrary::GetSoftWidg
 
 	return TSoftClassPtr<UYCNWidget_ActivatableWidgetBase>();
 }
+
+TSoftClassPtr<UYCNWidget_MainStack> UYCNFunctionLibrary::GetMainStackWidget()
+{
+	const UYCNDeveloperSettings* Settings = GetDefault<UYCNDeveloperSettings>();
+
+	if (Settings && !Settings->MainStackWidget.IsNull())
+	{
+		return Settings->MainStackWidget;
+	}
+
+	return TSoftClassPtr<UYCNWidget_MainStack>();
+}

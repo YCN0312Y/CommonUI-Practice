@@ -80,3 +80,8 @@ void UYCNWidgetManagerSubsystem::PushConfirmationToStack(EConfirmationWindowsTyp
 			})
 	);
 }
+
+void UYCNWidgetManagerSubsystem::SetOwningMainStackBackground(bool bIsVisible)
+{
+	OwningMainStack->SetBackgroundVisible(bIsVisible);
+}

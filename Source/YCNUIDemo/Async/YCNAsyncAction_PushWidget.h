@@ -28,5 +28,5 @@ private:
 public:
 	UFUNCTION(BlueprintCallable, Category = "UYCNAsyncAction_PushWidget", meta = (WorldContext = "InWorldContextObject"))
 	static UYCNAsyncAction_PushWidget* PushSoftWidget(
-		UObject* InWorldContextObject, FGameplayTag InWidgetTag, TSoftClassPtr<UYCNWidget_ActivatableWidgetBase>InWidget);
+		UObject* InWorldContextObject, UPARAM(meta = (Categories = "YCN.WidgetStack")) FGameplayTag InWidgetTag, TSoftClassPtr<UYCNWidget_ActivatableWidgetBase>InWidget);
 };
