@@ -10,7 +10,7 @@ namespace YCNDebug
 	{
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(-1, InDisplayTime, FColor::MakeRandomColor(), InMessage);
+			GEngine->AddOnScreenDebugMessage(-1, InDisplayTime, FColor::MakeRandomColor(), FString::Printf(TEXT("%s"), *InMessage));
 		}
 		UE_LOG(LogYCNCommonUI, Warning, TEXT("%s"), *InMessage);
 	}

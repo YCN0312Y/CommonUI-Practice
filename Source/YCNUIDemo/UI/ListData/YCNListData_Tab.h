@@ -11,4 +11,13 @@ class YCNUIDEMO_API UYCNListData_Tab : public UYCNListData_Base
 {
 	GENERATED_BODY()
 	
+public:
+	virtual void InitializationData()override;
+
+	void AddChildData(UYCNListData_Base* InChildData);
+
+	UYCNListData_Base* GetDataByChildDataID(const FName& InDataID);
+
+private:
+	TArray<UYCNListData_Base*>ChildDataList;
 };

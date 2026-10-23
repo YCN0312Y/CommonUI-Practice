@@ -7,6 +7,7 @@
 #include "YCNWidget_ButtonBase.generated.h"
 
 class UCommonTextBlock;
+class UCommonLazyImage;
 
 UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
 class YCNUIDEMO_API UYCNWidget_ButtonBase : public UCommonButtonBase
@@ -19,10 +20,20 @@ protected:
 	virtual void NativeOnCurrentTextStyleChanged()override;
 	
 public:
-	UPROPERTY(meta = (BindWidgetOptional))
+	// 按钮显示文本
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UCommonTextBlock>CommonText_ButtonDisplayText;
+	// 按钮显示图标
+	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
+	TObjectPtr<UCommonLazyImage>LazyImage_ButtonDisplayIcon;
 
 private:
+	//按钮显示文本
 	UPROPERTY(EditAnywhere, Category = "YCN Button")
-	FString ButtonDisplayText;
+	FText ButtonDisplayText;
+
+public:
+	void SetButtonDisplayText(const FText& InButtonDisplayText);
+
+	void SetButtonDisplayIcon(const TSoftObjectPtr<UTexture2D>& InButtonDisplayIcon);
 };

@@ -9,6 +9,7 @@
 
 class UYCNWidget_ActivatableWidgetBase;
 class UYCNWidget_MainStack;
+class UYCNListData_Tab;
 
 UCLASS()
 class YCNUIDEMO_API UYCNFunctionLibrary : public UBlueprintFunctionLibrary

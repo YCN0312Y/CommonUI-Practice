@@ -21,6 +21,10 @@ function M:OnInitialized()
         self.Story.OnButtonBaseClicked:Add(self, M.OnClick_Story)
     end
 
+    if self.Option then
+        self.Option.OnButtonBaseClicked:Add(self, M.OnClick_Option)
+    end
+
     if self.Quit then
         self.Quit.OnButtonBaseClicked:Add(self, M.OnClick_Quit)
     end
@@ -61,6 +65,43 @@ function M:OnClick_Story(Button)
         return
     end
     local FoundWidget = YCNFunctionLibrary.GetSoftWidgetByTag(LoaddingTag)
+    if not FoundWidget then
+        print("FoundWidget无效!")
+        return
+    end
+
+    local PushAction = PushWidget.PushSoftWidget(self, StackTag, FoundWidget)
+    if PushAction then
+        PushAction:Activate()
+    end
+end
+
+function M:OnClick_Option(Button)
+
+    if not PushWidget then
+        print("PushWidget无效!")
+        return
+    end
+    local PC = self:GetOwningPC()
+    if not PC then
+        print("PC无效!")
+        return
+    end
+    local OptionTag = PC.WidgetTagList:Find("Option")
+    if not OptionTag then
+        print("OptionTag无效!")
+        return
+    end
+    local StackTag = PC.StackTagList:Find("Menu")
+    if not StackTag then
+        print("StackTag无效!")
+        return
+    end
+    if not YCNFunctionLibrary then
+        print("YCNFunctionLibrary无效!")
+        return
+    end
+    local FoundWidget = YCNFunctionLibrary.GetSoftWidgetByTag(OptionTag)
     if not FoundWidget then
         print("FoundWidget无效!")
         return
