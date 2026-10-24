@@ -18,9 +18,12 @@ class YCNUIDEMO_API UYCNWidget_Options : public UYCNWidget_ActivatableWidgetBase
 	GENERATED_BODY()
 	
 public:
+	//初始化
 	virtual void NativeOnInitialized()override;
-
+	//预构造
 	virtual void NativePreConstruct()override;
+	//激活
+	virtual void NativeOnActivated()override;
 
 private:
 	//主标签
@@ -42,5 +45,10 @@ private:
 	void OnClickedBack();
 	void OnClickedReset();
 	
+	UFUNCTION()
+	void OnMainTabSelected(FName TabID);
+	UFUNCTION()
+	void OnTabSelected_MainTab(FName TabId);
+
 	UYCNListData_RegisterData* InitOwningRegisterData();
 };

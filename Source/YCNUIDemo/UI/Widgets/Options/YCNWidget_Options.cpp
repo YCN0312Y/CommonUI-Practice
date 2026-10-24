@@ -5,6 +5,7 @@
 #include "YCNUIDemo/UI/ListData/YCNListData_Tab.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_ButtonBase.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_TabListBase.h"
+#include "YCNUIDemo/UI/Components/YCNWidget_ListViewBase.h"
 #include "Input/CommonUIInputTypes.h"
 #include "ICommonInputModule.h"
 
@@ -20,12 +21,9 @@ void UYCNWidget_Options::NativeOnInitialized()
 			FBindUIActionArgs(ResetAction, true, FSimpleDelegate::CreateUObject(this, &UYCNWidget_Options::OnClickedReset)));
 	}
 
-	if (!ICommonInputModule::GetSettings().GetDefaultBackAction().IsNull())
+	if (IsValid(TabList_MainTab))
 	{
-		RegisterUIActionBinding(
-			FBindUIActionArgs(
-				ICommonInputModule::GetSettings().GetDefaultBackAction(), 
-				true, FSimpleDelegate::CreateUObject(this, &UYCNWidget_Options::OnClickedBack)));
+		TabList_MainTab->OnTabSelected.AddDynamic(this, &UYCNWidget_Options::OnTabSelected_MainTab);
 	}
 }
 
@@ -33,22 +31,77 @@ void UYCNWidget_Options::NativePreConstruct()
 {
 	Super::NativePreConstruct();
 
-	InitOwningRegisterData();
+}
 
-	if (IsValid(TabList_MainTab))
+void UYCNWidget_Options::NativeOnActivated()
+{
+	Super::NativeOnActivated();
+
+	if (IsValid(InitOwningRegisterData()) && IsValid(ListView_SubTab) && IsValid(TabList_MainTab))
 	{
 		if (OwningRegisterData)
 		{
+			FName FirstTabID = NAME_None;
+
 			for (const UYCNListData_Tab* AvailableTab : OwningRegisterData->GetAvailableDataList())
 			{
-				if (!AvailableTab) continue;
+				if (!IsValid(AvailableTab)) continue;
 
-				if (TabList_MainTab->GetTabButtonBaseByID(AvailableTab->GetDataID())) continue;
+				const FName TabID = AvailableTab->GetDataID();
+				if (TabID.IsNone())continue;
 
-				TabList_MainTab->ApplyRegisterTab(AvailableTab->GetDataID());
+				if (!TabList_MainTab->GetTabButtonBaseByID(TabID))
+				{
+					//对应的 ID 没有对应的按钮就添加该按钮
+					TabList_MainTab->ApplyRegisterTab(TabID);
+				}
+
+				if (FirstTabID.IsNone() && TabList_MainTab->GetTabButtonBaseByID(TabID))
+				{
+					//将 FirstTabID 设置为第一次循环成功的 ID
+					FirstTabID = TabID;
+				}
 			}
+			//当前选中的主标签的ID
+			FName SelectedTabID = TabList_MainTab->GetSelectedTabId();
+
+			if (SelectedTabID.IsNone() && !FirstTabID.IsNone())
+			{
+				//如果当前选中的主标签ID为空 就设置为第一个 标签 ID
+				TabList_MainTab->SelectTabByID(FirstTabID);
+				SelectedTabID = TabList_MainTab->GetSelectedTabId();
+			}
+
+			OnMainTabSelected(SelectedTabID);
 		}
 	}
+}
+
+void UYCNWidget_Options::OnMainTabSelected(FName TabID)
+{
+	if (!IsValid(ListView_SubTab))return;
+
+	TWeakObjectPtr<UYCNListData_Tab>SelectedTab = nullptr;
+
+	if (IsValid(OwningRegisterData) && !TabID.IsNone())
+	{
+		SelectedTab = OwningRegisterData->GetDataByDataID(TabID);
+	}
+
+	ListView_SubTab->ClearSelection();
+
+	if (!SelectedTab.IsValid())
+	{
+		ListView_SubTab->ClearListItems();
+		return;
+	}
+
+	ListView_SubTab->SetListItems(SelectedTab->GetChildDataList());
+	ListView_SubTab->ScrollToTop();
+}
+
+void UYCNWidget_Options::OnTabSelected_MainTab(FName TabId)
+{
 }
 
 void UYCNWidget_Options::OnClickedBack()
@@ -60,6 +113,8 @@ void UYCNWidget_Options::OnClickedReset()
 {
 	YCNDebug::Print("重置");
 }
+
+
 
 UYCNListData_RegisterData* UYCNWidget_Options::InitOwningRegisterData()
 {

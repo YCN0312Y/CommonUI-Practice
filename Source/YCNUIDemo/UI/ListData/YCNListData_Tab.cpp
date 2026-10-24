@@ -9,6 +9,10 @@ void UYCNListData_Tab::InitializationData()
 
 void UYCNListData_Tab::AddChildData(UYCNListData_Base* InChildData)
 {
+	if (!IsValid(InChildData)) return;
+	
+
+	InChildData->SetDataParent(this);
 	ChildDataList.Add(InChildData);
 }
 
