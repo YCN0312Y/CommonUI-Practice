@@ -33,6 +33,7 @@ void UYCNListData_RegisterData::InitGameSettingsList()
 	if(GameplayTab)
 	{
 		GameplayTab->SetDataID(FName("GameplayTab"));
+		GameplayTab->SetDataDisplayText(SetDataText(TEXT("游戏设置")));
 
 		AvailableDataList.Add(GameplayTab);
 
@@ -43,7 +44,10 @@ void UYCNListData_RegisterData::InitGameSettingsList()
 			{
 				GameDifficulty->SetDataID(FName("GameDifficulty"));
 				GameDifficulty->SetDataDisplayText(SetDataText(TEXT("游戏难度")));
-
+				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("简单")));
+				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("正常")));
+				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("困难")));
+				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("极难")));
 				GameplayTab->AddChildData(GameDifficulty);
 			}
 		}
@@ -57,6 +61,7 @@ void UYCNListData_RegisterData::InitAudioList()
 	if (AudioTab)
 	{
 		AudioTab->SetDataID(FName("AudioTab"));
+		AudioTab->SetDataDisplayText(SetDataText(TEXT("音频")));
 
 		AvailableDataList.Add(AudioTab);
 	}
@@ -68,6 +73,7 @@ void UYCNListData_RegisterData::InitVideoList()
 	if (VideoTab)
 	{
 		VideoTab->SetDataID(FName("VideoTab"));
+		VideoTab->SetDataDisplayText(SetDataText(TEXT("视频")));
 
 		AvailableDataList.Add(VideoTab);
 	}
@@ -79,6 +85,7 @@ void UYCNListData_RegisterData::InitControlList()
 	if (ControlTab)
 	{
 		ControlTab->SetDataID(FName("ControlTab"));
+		ControlTab->SetDataDisplayText(SetDataText(TEXT("控制")));
 
 		AvailableDataList.Add(ControlTab);
 	}
@@ -90,6 +97,7 @@ void UYCNListData_RegisterData::InitAssistList()
 	if (AssistTab)
 	{
 		AssistTab->SetDataID(FName("AssistTab"));
+		AssistTab->SetDataDisplayText(SetDataText(TEXT("辅助")));
 
 		AvailableDataList.Add(AssistTab);
 	}

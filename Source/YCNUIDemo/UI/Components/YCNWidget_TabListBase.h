@@ -10,6 +10,7 @@ class UVerticalBox;
 class UCommonActionWidget;
 class UYCNWidget_ButtonBase;
 class UTexture2D;
+class UYCNListData_Tab;
 
 UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
 class YCNUIDEMO_API UYCNWidget_TabListBase : public UCommonTabListWidgetBase
@@ -42,5 +43,5 @@ private:
 	TMap<FName, TSoftObjectPtr<UTexture2D>>MainTabIcon;
 
 public:
-	void ApplyRegisterTab(const FName& InDataID);
+	void ApplyRegisterTab(const UYCNListData_Tab* InData);
 };

@@ -34,6 +34,10 @@ private:
 
 public:
 	void SetButtonDisplayText(const FText& InButtonDisplayText);
-
+	//设置按钮图标
+	UFUNCTION(BlueprintCallable, Category = "YCN Button")
 	void SetButtonDisplayIcon(const TSoftObjectPtr<UTexture2D>& InButtonDisplayIcon);
+	//设置按钮图标颜色
+	UFUNCTION(BlueprintCallable, Category = "YCN Button")
+	void SetButtonIconColor(const FSlateColor& InIconColor);
 };

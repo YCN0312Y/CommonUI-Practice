@@ -41,3 +41,11 @@ void UYCNWidget_ButtonBase::SetButtonDisplayIcon(const TSoftObjectPtr<UTexture2D
 		LazyImage_ButtonDisplayIcon->SetBrushFromLazyTexture(InButtonDisplayIcon);
 	}
 }
+
+void UYCNWidget_ButtonBase::SetButtonIconColor(const FSlateColor& InIconColor)
+{
+	if (LazyImage_ButtonDisplayIcon)
+	{
+		LazyImage_ButtonDisplayIcon->SetBrushTintColor(InIconColor);
+	}
+}

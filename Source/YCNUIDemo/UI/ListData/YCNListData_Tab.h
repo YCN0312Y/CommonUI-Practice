@@ -23,5 +23,4 @@ public:
 private:
 	UPROPERTY(Transient)
 	TArray<UYCNListData_Base*>ChildDataList;
-
 };

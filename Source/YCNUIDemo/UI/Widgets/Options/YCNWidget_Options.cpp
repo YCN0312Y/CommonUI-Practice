@@ -53,7 +53,7 @@ void UYCNWidget_Options::NativeOnActivated()
 				if (!TabList_MainTab->GetTabButtonBaseByID(TabID))
 				{
 					//对应的 ID 没有对应的按钮就添加该按钮
-					TabList_MainTab->ApplyRegisterTab(TabID);
+					TabList_MainTab->ApplyRegisterTab(AvailableTab);
 				}
 
 				if (FirstTabID.IsNone() && TabList_MainTab->GetTabButtonBaseByID(TabID))

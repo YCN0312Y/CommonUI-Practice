@@ -10,6 +10,8 @@
 
 class UYCNWidget_ActivatableWidgetBase;
 class UYCNWidget_MainStack;
+class UYCNWidget_DropdownOption;
+class UYCNListData_Value;
 
 UCLASS()
 class YCNUIDEMO_API UYCNWidgetManagerSubsystem : public UGameInstanceSubsystem
@@ -31,9 +33,13 @@ public:
 	//注册主堆栈
 	UFUNCTION(BlueprintCallable, Category = "YCNWidgetManagerSubsystem")
 	void RegisterMainStack(UYCNWidget_MainStack* InMainStack);
+
 	//推送控件到堆栈
 	UFUNCTION(BlueprintCallable, Category = "YCNWidgetManagerSubsystem")
-	void PushSoftWidgetToStack(UPARAM(meta = (Categories = "YCN.WidgetStack")) FGameplayTag InStackTag, TSoftClassPtr<UYCNWidget_ActivatableWidgetBase> InPushWidget);
+	void PushSoftWidgetToStack(
+		UPARAM(meta = (Categories = "YCN.WidgetStack")) FGameplayTag InStackTag, 
+		TSoftClassPtr<UYCNWidget_ActivatableWidgetBase> InPushWidget);
+
 	//推送确认按钮到堆栈
 	void PushConfirmationToStack(
 		EConfirmationWindowsType InWindowsType,
@@ -41,6 +47,10 @@ public:
 		const FText& InWinodwMessageText,
 		TFunction<void(EConfirmationWindowsButtonType)>ButtonClickCallback
 		);
+
+	//推送选项列表到堆栈
+	void PushDropdownOptions(TSoftClassPtr<UYCNWidget_DropdownOption>InDropdownOptionWidget, UYCNListData_Value* InData);
+
 	void SetOwningMainStackBackground(bool bIsVisible);
 
 };

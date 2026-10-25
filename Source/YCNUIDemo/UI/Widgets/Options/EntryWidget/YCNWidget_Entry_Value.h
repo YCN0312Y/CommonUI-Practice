@@ -8,23 +8,34 @@
 #include "YCNWidget_Entry_Value.generated.h"
 
 class UYCNWidget_ButtonBase;
-class UYCNWidget_RotatorBase;
+class UCommonTextBlock;
+class UYCNListData_Value;
+class UYCNWidget_DropdownOption;
+
 UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
 class YCNUIDEMO_API UYCNWidget_Entry_Value : public UYCNWidget_EntryBase
 {
 	GENERATED_BODY()
 	
 protected:
+	virtual void NativeOnInitialized()override;
+
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject)override;
 
 private:
-	//上一个
-	UPROPERTY(BlueprintReadOnly, Category = "YCN Entry Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<UYCNWidget_ButtonBase>CommonButton_Previous;
-	//选项列表
-	UPROPERTY(BlueprintReadOnly, Category = "YCN Entry Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<UYCNWidget_RotatorBase>CommonRotator_OptionList;
-	//下一个
-	UPROPERTY(BlueprintReadOnly, Category = "YCN Entry Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
-	TObjectPtr<UYCNWidget_ButtonBase>CommonButton_Next;
+	//选择文本
+	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<UCommonTextBlock>CommonText_SelectedText;
+	//下拉按钮
+	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<UYCNWidget_ButtonBase>CommonButton_DropdownButton;
+
+	UPROPERTY(Transient)
+	TObjectPtr<UYCNListData_Value>OwningValueData;
+	//下拉菜单类
+	UPROPERTY(EditDefaultsOnly, Category = "YCN Widget")
+	TSoftClassPtr<UYCNWidget_DropdownOption>DropdownOptionClass;
+
+private:
+	void OnClicked_DropdownButton();
 };
