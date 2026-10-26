@@ -5,6 +5,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/Border.h"
 #include "CommonTextBlock.h"
+#include "Components/ListView.h"
+#include "InputCoreTypes.h"
 
 void UYCNWidget_EntryBase::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
@@ -14,39 +16,83 @@ void UYCNWidget_EntryBase::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 }
 
+void UYCNWidget_EntryBase::NativeOnItemSelectionChanged(bool bIsSelected)
+{
+	IUserObjectListEntry::NativeOnItemSelectionChanged(bIsSelected);
+
+	SwitchItemStatus(bIsSelected);
+}
+
+FReply UYCNWidget_EntryBase::NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent)
+{
+	Super::NativeOnFocusReceived(InGeometry, InFocusEvent);
+
+	if (Border_HighLight)
+	{
+		Border_HighLight->SetVisibility(ESlateVisibility::Visible);
+	}
+	if (CommonText_DisplayText)
+	{
+		CommonText_DisplayText->SetStyle(TextStyle_Selected);
+	}
+
+	return FReply::Handled();
+}
+
 void UYCNWidget_EntryBase::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseEnter(InGeometry, InMouseEvent);
 
-	if (CommonText_DisplayText && HoverSound && TextStyle_Selected)
+	if (UListView* ListView = Cast<UListView>(GetOwningListView()))
 	{
-		CommonText_DisplayText->SetStyle(TextStyle_Selected);
-
-		UGameplayStatics::PlaySound2D(this, HoverSound);
-
-		if (Border_HighLight && Border_HighLight->GetVisibility() == ESlateVisibility::Collapsed)
+		if (UObject* ListItem = GetListItem<UObject>())
 		{
-			Border_HighLight->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			ListView->SetSelectedItem(ListItem);
 		}
 	}
+
+	if (APlayerController* PlayerController = GetOwningPlayer())
+	{
+		SetUserFocus(PlayerController);
+	}
+
+	if (HoverSound)
+	{
+		UGameplayStatics::PlaySound2D(this, HoverSound);
+	}
+	
+	NativeOnHovered(true, IsListItemSelected());
 }
 
 void UYCNWidget_EntryBase::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
 	Super::NativeOnMouseLeave(InMouseEvent);
 
-	if (CommonText_DisplayText && TextStyle_Default)
-	{
-		CommonText_DisplayText->SetStyle(TextStyle_Default);
-	}
+	NativeOnHovered(false, IsListItemSelected());
+}
 
-	if (Border_HighLight && Border_HighLight->GetVisibility() == ESlateVisibility::SelfHitTestInvisible)
-	{
-		Border_HighLight->SetVisibility(ESlateVisibility::Collapsed);
-	}
+void UYCNWidget_EntryBase::NativeOnHovered(bool bIsHovered, bool bIsSelected)
+{
+	BP_OnHovered(bIsHovered, bIsSelected);
 }
 
 void UYCNWidget_EntryBase::SetEnrtyDisplayText(const FText& InDisplayText)
 {
 	CommonText_DisplayText->SetText(InDisplayText);
+}
+
+void UYCNWidget_EntryBase::SwitchItemStatus(bool bIsSwitch)
+{
+	if (!Border_HighLight || !CommonText_DisplayText)return;
+
+	if (bIsSwitch)
+	{
+		Border_HighLight->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+		CommonText_DisplayText->SetStyle(TextStyle_Selected);
+	}
+	else
+	{
+		Border_HighLight->SetVisibility(ESlateVisibility::Collapsed);
+		CommonText_DisplayText->SetStyle(TextStyle_Default);
+	}
 }

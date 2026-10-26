@@ -8,6 +8,7 @@
 #include "YCNUIDemo/Tags/YCNGameplayTags.h"
 #include "Engine/AssetManager.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
+#include "YCNUIDemo/UI/Widgets/Options/YCNWidget_DropdownOption.h"
 
 UYCNWidgetManagerSubsystem* UYCNWidgetManagerSubsystem::Get(const UObject* WorldContextObject)
 {
@@ -78,29 +79,6 @@ void UYCNWidgetManagerSubsystem::PushConfirmationToStack(EConfirmationWindowsTyp
 						}
 					}
 				}
-			})
-	);
-}
-
-void UYCNWidgetManagerSubsystem::PushDropdownOptions(TSoftClassPtr<UYCNWidget_DropdownOption> InDropdownOptionWidget, UYCNListData_Value* InData)
-{
-	if (!InDropdownOptionWidget.IsNull() || !IsValid(InData) || InData->GetOptionList().IsEmpty() || !OwningMainStack)return;
-
-	TWeakObjectPtr<UYCNWidgetManagerSubsystem>WeakThis(this);
-	TWeakObjectPtr<UYCNListData_Value>WeakData(InData);
-
-	UAssetManager::GetStreamableManager().RequestAsyncLoad(
-		InDropdownOptionWidget.ToSoftObjectPath(),
-		FStreamableDelegate::CreateLambda(
-			[WeakThis, WeakData, InDropdownOptionWidget]()
-			{
-				UYCNWidgetManagerSubsystem* Subsystem = WeakThis.Get();
-				UYCNListData_Value* Data = WeakData.Get();
-				UClass* DropdownOptionClass = InDropdownOptionWidget.Get();
-				if (!Subsystem || IsValid(Subsystem->OwningMainStack))return;
-				if (!IsValid(Data))return;
-				if (!DropdownOptionClass)return;
-				//UCommonActivatableWidgetStack* Subsystem->OwningMainStack->FindWidgetByTag(YCNGameplayTags::YCN_WidgetStack_Modal);
 			})
 	);
 }

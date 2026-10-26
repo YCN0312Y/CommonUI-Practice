@@ -50,6 +50,18 @@ void UYCNListData_RegisterData::InitGameSettingsList()
 				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("极难")));
 				GameplayTab->AddChildData(GameDifficulty);
 			}
+
+			UYCNListData_Value* Test = NewObject<UYCNListData_Value>();
+			if (Test)
+			{
+				Test->SetDataID(FName("Test"));
+				Test->SetDataDisplayText(SetDataText(TEXT("测试标签")));
+				Test->AddDataToOptionsList(SetDataText(TEXT("简单")));
+				Test->AddDataToOptionsList(SetDataText(TEXT("正常")));
+				Test->AddDataToOptionsList(SetDataText(TEXT("困难")));
+				Test->AddDataToOptionsList(SetDataText(TEXT("极难")));
+				GameplayTab->AddChildData(Test);
+			}
 		}
 		
 	}

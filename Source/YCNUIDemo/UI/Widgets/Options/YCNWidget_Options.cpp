@@ -97,6 +97,12 @@ void UYCNWidget_Options::OnMainTabSelected(FName TabID)
 	}
 
 	ListView_SubTab->SetListItems(SelectedTab->GetChildDataList());
+
+	if (!ListView_SubTab->GetListItems().IsEmpty())
+	{
+		ListView_SubTab->SetSelectedIndex(0);
+		ListView_SubTab->NavigateToIndex(0);
+	}
 	ListView_SubTab->ScrollToTop();
 }
 

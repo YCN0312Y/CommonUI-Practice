@@ -48,9 +48,6 @@ public:
 		TFunction<void(EConfirmationWindowsButtonType)>ButtonClickCallback
 		);
 
-	//推送选项列表到堆栈
-	void PushDropdownOptions(TSoftClassPtr<UYCNWidget_DropdownOption>InDropdownOptionWidget, UYCNListData_Value* InData);
-
 	void SetOwningMainStackBackground(bool bIsVisible);
 
 };

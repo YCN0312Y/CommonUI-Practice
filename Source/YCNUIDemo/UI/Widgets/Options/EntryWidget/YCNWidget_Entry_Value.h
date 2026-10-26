@@ -11,6 +11,7 @@ class UYCNWidget_ButtonBase;
 class UCommonTextBlock;
 class UYCNListData_Value;
 class UYCNWidget_DropdownOption;
+class UMenuAnchor;
 
 UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
 class YCNUIDEMO_API UYCNWidget_Entry_Value : public UYCNWidget_EntryBase
@@ -22,13 +23,26 @@ protected:
 
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject)override;
 
+	//聚焦
+	virtual FReply NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent) override;
+
+	virtual void SwitchItemStatus(bool bIsSwitch)override;;
+
 private:
+	/*
+	* BindWidget--------------------
+	*/
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UMenuAnchor>MenuAnchor_Option;
 	//选择文本
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<UCommonTextBlock>CommonText_SelectedText;
 	//下拉按钮
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<UYCNWidget_ButtonBase>CommonButton_DropdownButton;
+	/*
+	* BindWidget--------------------
+	*/
 
 	UPROPERTY(Transient)
 	TObjectPtr<UYCNListData_Value>OwningValueData;
@@ -38,4 +52,9 @@ private:
 
 private:
 	void OnClicked_DropdownButton();
+	//创建内容
+	UFUNCTION()
+	UUserWidget* CreateOptionMenuContent();
+
+	void OnDropdownOptionSelected(const FText& InOptionText);
 };

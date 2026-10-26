@@ -8,6 +8,8 @@
 
 class UYCNWidget_ButtonBase;
 class UScrollBox;
+class UYCNListData_Value;
+class USizeBox;
 
 UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
 class YCNUIDEMO_API UYCNWidget_DropdownOption : public UYCNWidget_ActivatableWidgetBase
@@ -24,4 +26,24 @@ private:
 	//下一个
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UYCNWidget_ButtonBase>CommonButton_Next;
+	//选项列表数据
+	UPROPERTY(Transient)
+	TObjectPtr<UYCNListData_Value>OptionListData;
+	//选项列表按钮
+	UPROPERTY(EditDefaultsOnly, Category = "YCN Widget")
+	TSubclassOf<UYCNWidget_ButtonBase>OptionButton;
+
+public:
+	//更新选择文本代理
+	DECLARE_DELEGATE_OneParam(FOnUpdateSelectedText, const FText& SelectedText);
+	FOnUpdateSelectedText OnUpdateSelectedText;
+
+public:
+	//设置选项列表数据
+	void SetOptionListData(UYCNListData_Value* InData);
+	//添加数据到选项列表
+	void AddDataToOptionList();
+
+	//点击创建的按钮
+	void OnClick_CreatedButton(FText InOptionText);
 };

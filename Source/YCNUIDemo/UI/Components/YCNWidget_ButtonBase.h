@@ -27,10 +27,17 @@ public:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidgetOptional))
 	TObjectPtr<UCommonLazyImage>LazyImage_ButtonDisplayIcon;
 
+	//图标默认颜色
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "YCN Button")
+	FSlateColor IncoDefaultColor = FSlateColor(FColor::White);
+	//图标选中颜色
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "YCN Button")
+	FSlateColor IncoSelectedColor = FSlateColor(FColor::Black);
 private:
 	//按钮显示文本
 	UPROPERTY(EditAnywhere, Category = "YCN Button")
 	FText ButtonDisplayText;
+
 
 public:
 	void SetButtonDisplayText(const FText& InButtonDisplayText);
