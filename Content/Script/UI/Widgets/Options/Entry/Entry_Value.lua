@@ -20,20 +20,4 @@ local M = UnLua.Class()
 
 --function M:Tick(MyGeometry, InDeltaTime)
 --end
-
-function M:BP_OnHovered(bIsHovered, bIsSelected)
-
-    if bIsHovered then
-        if not bIsSelected then
-            self:SwitchItemStatus(true)
-        end
-    else
-        if bIsSelected then
-            self:SwitchItemStatus(true)
-        else
-            self:SwitchItemStatus(false)
-        end
-    end
-    
-end
 return M

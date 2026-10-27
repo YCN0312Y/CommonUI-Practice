@@ -35,7 +35,7 @@ private:
 
 public:
 	//更新选择文本代理
-	DECLARE_DELEGATE_OneParam(FOnUpdateSelectedText, const FText& SelectedText);
+	DECLARE_MULTICAST_DELEGATE_OneParam(FOnUpdateSelectedText, FText InOptionText);
 	FOnUpdateSelectedText OnUpdateSelectedText;
 
 public:

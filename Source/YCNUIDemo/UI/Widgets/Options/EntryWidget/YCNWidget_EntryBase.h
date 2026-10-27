@@ -24,6 +24,8 @@ protected:
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject)override;
 	//选择小条目
 	virtual void NativeOnItemSelectionChanged(bool bIsSelected) override;
+
+	virtual void NativeOnEntryReleased() override;
 	/*
 	* IUserObjectListEntry End-----
 	*/
@@ -34,17 +36,9 @@ protected:
 	//鼠标进入时
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)override;
 
-	//鼠标离开时
-	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent)override;
-
 	//切换条目状态
 	UFUNCTION(BlueprintCallable, Category = "YCN Widget")
 	virtual void SwitchItemStatus(bool bIsSwitch);
-
-	//悬停
-	UFUNCTION(BlueprintImplementableEvent, Category = "YCN Widget", meta = (DisplayName = "On Hovered"))
-	void BP_OnHovered(bool bIsHovered, bool bIsSelected);
-	virtual void NativeOnHovered(bool bIsHovered, bool bIsSelected);
 
 	void SetEnrtyDisplayText(const FText& InDisplayText);
 

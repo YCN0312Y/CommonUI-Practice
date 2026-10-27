@@ -10,6 +10,7 @@
 #include "CommonTextBlock.h"
 #include "Components/MenuAnchor.h"
 
+
 void UYCNWidget_Entry_Value::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
@@ -22,6 +23,7 @@ void UYCNWidget_Entry_Value::NativeOnInitialized()
     if (MenuAnchor_Option)
     {
         MenuAnchor_Option->OnGetUserMenuContentEvent.BindDynamic(this, &UYCNWidget_Entry_Value::CreateOptionMenuContent);
+        MenuAnchor_Option->OnMenuOpenChanged.AddDynamic(this, &UYCNWidget_Entry_Value::OnOpen_MenuAnchorOption);
     }
 }
 
@@ -34,16 +36,7 @@ void UYCNWidget_Entry_Value::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 FReply UYCNWidget_Entry_Value::NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent)
 {
-    Super::NativeOnFocusReceived(InGeometry, InFocusEvent);
-    if (CommonText_SelectedText)
-    {
-        CommonText_SelectedText->SetStyle(TextStyle_Selected);
-    }
-    if (CommonButton_DropdownButton)
-    {
-        CommonButton_DropdownButton->SetButtonIconColor(CommonButton_DropdownButton->IncoSelectedColor);
-    }
-    return FReply::Handled();
+    return Super::NativeOnFocusReceived(InGeometry, InFocusEvent);
 }
 
 void UYCNWidget_Entry_Value::SwitchItemStatus(bool bIsSwitch)
@@ -64,54 +57,78 @@ void UYCNWidget_Entry_Value::SwitchItemStatus(bool bIsSwitch)
     }
 }
 
+void UYCNWidget_Entry_Value::NativeOnEntryReleased()
+{
+    CloseDropdownMenu(false);
+    OnDropdownOpenChanged.Unbind();
+
+    Super::NativeOnEntryReleased();
+}
+
 void UYCNWidget_Entry_Value::OnClicked_DropdownButton()
 {
-    if (!MenuAnchor_Option)
-    {
-        return;
-    }
+    if (!MenuAnchor_Option || MenuAnchor_Option->IsOpen()) return;
+    
+    MenuAnchor_Option->Open(true);
 
-    if (MenuAnchor_Option->IsOpen())
+    if (MenuAnchor_Option->IsOpen() && CurrentDropdownMenu.IsValid())
     {
-        MenuAnchor_Option->Close();
-    }
-    else
-    {
-        MenuAnchor_Option->Open(true);
+        CurrentDropdownMenu->SetFocus();
     }
 }
 
 UUserWidget* UYCNWidget_Entry_Value::CreateOptionMenuContent()
 {
-    if (!IsValid(MenuAnchor_Option) || !IsValid(OwningValueData))
-    {
-        return nullptr;
-    }
-
+    if (!IsValid(MenuAnchor_Option) || !IsValid(OwningValueData)) return nullptr;
+    
     UClass* WidgetClass = MenuAnchor_Option->MenuClass.Get();
 
-    if (!WidgetClass
-        || !WidgetClass->IsChildOf(UYCNWidget_DropdownOption::StaticClass()))
-    {
-        return nullptr;
-    }
-
+    if (!WidgetClass || !WidgetClass->IsChildOf(UYCNWidget_DropdownOption::StaticClass())) return nullptr;
+    
     UYCNWidget_DropdownOption* MenuWidget = CreateWidget<UYCNWidget_DropdownOption>(GetOwningPlayer(), WidgetClass);
-
+    
     if (MenuWidget)
     {
-        MenuWidget->OnUpdateSelectedText.BindUObject(this, &UYCNWidget_Entry_Value::OnDropdownOptionSelected);
+        CurrentDropdownMenu = MenuWidget;
+        MenuWidget->OnUpdateSelectedText.AddUObject(this, &UYCNWidget_Entry_Value::OnClick_ListCreatedButton);
         MenuWidget->SetOptionListData(OwningValueData);
     }
 
-    // 返回的这个实例，才是 MenuAnchor 随后显示的菜单。
     return MenuWidget;
 }
 
-void UYCNWidget_Entry_Value::OnDropdownOptionSelected(const FText& InOptionText)
+void UYCNWidget_Entry_Value::OnOpen_MenuAnchorOption(bool bIsOpen)
 {
-    if (IsValid(CommonText_SelectedText))
+    if (!bIsOpen)
     {
-        CommonText_SelectedText->SetText(InOptionText);
+        CurrentDropdownMenu.Reset();
     }
+
+    OnDropdownOpenChanged.ExecuteIfBound(bIsOpen);
+}
+
+void UYCNWidget_Entry_Value::OnClick_ListCreatedButton(FText InSelectedText)
+{
+    if (!CommonText_SelectedText)return;
+    CommonText_SelectedText->SetText(InSelectedText);
+
+    CloseDropdownMenu();
+}
+
+void UYCNWidget_Entry_Value::CloseDropdownMenu(bool bIsFocusThis)
+{
+	if (!IsValid(MenuAnchor_Option))return;
+
+	if (MenuAnchor_Option->IsOpen())
+	{
+		MenuAnchor_Option->Close();
+
+        if (bIsFocusThis)
+        {
+            if (APlayerController* PC = GetOwningPlayer())
+            {
+                SetUserFocus(PC);
+            }
+        }
+	}
 }

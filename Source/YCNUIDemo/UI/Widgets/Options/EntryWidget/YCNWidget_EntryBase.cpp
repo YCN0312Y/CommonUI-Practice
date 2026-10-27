@@ -12,7 +12,16 @@ void UYCNWidget_EntryBase::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
 	IUserObjectListEntry::NativeOnListItemObjectSet(ListItemObject);
 
-	SetEnrtyDisplayText(CastChecked<UYCNListData_Base>(ListItemObject)->GetDataDisplayText());
+	if (const UYCNListData_Base* Data = Cast<UYCNListData_Base>(ListItemObject))
+	{
+		SetEnrtyDisplayText(Data->GetDataDisplayText());
+	}
+	else
+	{
+		SetEnrtyDisplayText(FText::GetEmpty());
+	}
+
+	SwitchItemStatus(IsListItemSelected());
 
 }
 
@@ -23,18 +32,20 @@ void UYCNWidget_EntryBase::NativeOnItemSelectionChanged(bool bIsSelected)
 	SwitchItemStatus(bIsSelected);
 }
 
+void UYCNWidget_EntryBase::NativeOnEntryReleased()
+{
+	IUserObjectListEntry::NativeOnEntryReleased();
+
+	//清除本次使用留下的视觉状态
+	SwitchItemStatus(false);
+}
+
 FReply UYCNWidget_EntryBase::NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent)
 {
 	Super::NativeOnFocusReceived(InGeometry, InFocusEvent);
 
-	if (Border_HighLight)
-	{
-		Border_HighLight->SetVisibility(ESlateVisibility::Visible);
-	}
-	if (CommonText_DisplayText)
-	{
-		CommonText_DisplayText->SetStyle(TextStyle_Selected);
-	}
+	// 焦点变化不直接制造另一份“选中状态”
+	SwitchItemStatus(IsListItemSelected());
 
 	return FReply::Handled();
 }
@@ -53,27 +64,14 @@ void UYCNWidget_EntryBase::NativeOnMouseEnter(const FGeometry& InGeometry, const
 
 	if (APlayerController* PlayerController = GetOwningPlayer())
 	{
-		SetUserFocus(PlayerController);
+		//SetUserFocus(PlayerController);
 	}
 
 	if (HoverSound)
 	{
 		UGameplayStatics::PlaySound2D(this, HoverSound);
 	}
-	
-	NativeOnHovered(true, IsListItemSelected());
-}
 
-void UYCNWidget_EntryBase::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
-{
-	Super::NativeOnMouseLeave(InMouseEvent);
-
-	NativeOnHovered(false, IsListItemSelected());
-}
-
-void UYCNWidget_EntryBase::NativeOnHovered(bool bIsHovered, bool bIsSelected)
-{
-	BP_OnHovered(bIsHovered, bIsSelected);
 }
 
 void UYCNWidget_EntryBase::SetEnrtyDisplayText(const FText& InDisplayText)

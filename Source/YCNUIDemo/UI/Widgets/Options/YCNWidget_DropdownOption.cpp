@@ -35,6 +35,6 @@ void UYCNWidget_DropdownOption::AddDataToOptionList()
 
 void UYCNWidget_DropdownOption::OnClick_CreatedButton(FText InOptionText)
 {
-	OnUpdateSelectedText.Execute(InOptionText);
+	OnUpdateSelectedText.Broadcast(InOptionText);
 }
 

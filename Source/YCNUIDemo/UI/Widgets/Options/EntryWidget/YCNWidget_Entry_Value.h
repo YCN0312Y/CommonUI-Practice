@@ -26,7 +26,10 @@ protected:
 	//聚焦
 	virtual FReply NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent) override;
 
-	virtual void SwitchItemStatus(bool bIsSwitch)override;;
+	//切换条目状态
+	virtual void SwitchItemStatus(bool bIsSwitch)override;
+
+	virtual void NativeOnEntryReleased() override;
 
 private:
 	/*
@@ -34,9 +37,11 @@ private:
 	*/
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UMenuAnchor>MenuAnchor_Option;
+
 	//选择文本
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<UCommonTextBlock>CommonText_SelectedText;
+
 	//下拉按钮
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<UYCNWidget_ButtonBase>CommonButton_DropdownButton;
@@ -46,15 +51,36 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UYCNListData_Value>OwningValueData;
+
 	//下拉菜单类
 	UPROPERTY(EditDefaultsOnly, Category = "YCN Widget")
 	TSoftClassPtr<UYCNWidget_DropdownOption>DropdownOptionClass;
 
+	//当前由 MenuAnchor 创建并显示的菜单实例
+	UPROPERTY(Transient)
+	TWeakObjectPtr<UYCNWidget_DropdownOption> CurrentDropdownMenu;
+
+public:
+	//打开列表背景
+	DECLARE_DELEGATE_OneParam(FOnDropdownOpenChanged, bool bIsOpen);
+	FOnDropdownOpenChanged OnDropdownOpenChanged;
+
 private:
+	//点击下拉按钮
 	void OnClicked_DropdownButton();
-	//创建内容
+
+	//创建选项菜单内容
 	UFUNCTION()
 	UUserWidget* CreateOptionMenuContent();
 
-	void OnDropdownOptionSelected(const FText& InOptionText);
+	//菜单打开/关闭
+	UFUNCTION()
+	void OnOpen_MenuAnchorOption(bool bIsOpen);
+
+	//点击下拉菜单中的按钮回调
+	void OnClick_ListCreatedButton(FText InSelectedText);
+
+public:
+	//关闭下拉菜单
+	void CloseDropdownMenu(bool bIsFocusThis = true);
 };
