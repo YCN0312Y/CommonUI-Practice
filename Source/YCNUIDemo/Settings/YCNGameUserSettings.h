@@ -19,16 +19,9 @@ public:
 private:
 	//游戏难度文本
 	UPROPERTY(Config)
-	FText Cached_GameDifficultyText = FText::FromString(TEXT("简单"));
-	//默认游戏难度文本
-	UPROPERTY(Config)
-	FText Default_GameDifficultyText;
+	FText Cached_GameDifficultyText;
 
 public:
 	void SetCachedGameDifficultyText(const FText& InGameDifficultyText);
-	const FText& GetCachedGameDifficultyText() { return Cached_GameDifficultyText; }
-
-	//设置为默认值
-	void SetDataDefaultValue(const FText& InDefaultValue);
-	const FText& GetDataDefaultValue();
+	const FText& GetCachedGameDifficultyText()const;
 };

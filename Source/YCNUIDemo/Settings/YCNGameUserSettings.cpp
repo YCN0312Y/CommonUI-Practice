@@ -17,7 +17,7 @@ void UYCNGameUserSettings::SetCachedGameDifficultyText(const FText& InGameDiffic
     Cached_GameDifficultyText = InGameDifficultyText;
 }
 
-void UYCNGameUserSettings::SetDataDefaultValue(const FText& InDefaultValue)
+const FText& UYCNGameUserSettings::GetCachedGameDifficultyText() const
 {
-
+    return Cached_GameDifficultyText.IsEmpty() ? FText::GetEmpty() : Cached_GameDifficultyText;
 }

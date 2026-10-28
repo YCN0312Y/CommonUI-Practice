@@ -12,36 +12,55 @@ Type Get##Value()const { return Value; }
 
 class UTexture2D;
 
+//设置当前缓存值
+DECLARE_DELEGATE_OneParam(FOnWriteSettingValue, const FText&);
+//获取当前缓存值
+DECLARE_DELEGATE_RetVal(FText, FOnReadSettingValue);
+
 UCLASS(Transient)
 class YCNUIDEMO_API UYCNListData_Base : public UObject
 {
 	GENERATED_BODY()
 
-public:
-	//初始化数据
-	virtual void InitializationData();
-
 private:
 	//数据ID
-	UPROPERTY()
+	UPROPERTY(Transient)
 	FName DataID;
+
 	//数据显示文本
-	UPROPERTY()
+	UPROPERTY(Transient)
 	FText DataDisplayText;
+
 	//数据描述
-	UPROPERTY()
+	UPROPERTY(Transient)
 	FText DataDescription;
+
 	//数据父类
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TObjectPtr<UYCNListData_Base>DataParent;
+
 	//数据图标
-	UPROPERTY()
+	UPROPERTY(Transient)
 	TObjectPtr<UTexture2D>DataIcon;
 
+	//写
+	FOnWriteSettingValue OnWriteSettingValue;
+	//读
+	FOnReadSettingValue OnReadSettingValue;
+
 public:
+	//设置/获取器
 	MAKE_SET_GET(FName, DataID);
 	MAKE_SET_GET(FText, DataDisplayText);
 	MAKE_SET_GET(FText, DataDescription);
 	MAKE_SET_GET(TObjectPtr<UYCNListData_Base>, DataParent);
 	MAKE_SET_GET(TObjectPtr<UTexture2D>, DataIcon);
+
+public:
+	// Entry 通过这两个函数访问设置。
+	bool TryReadSettingText(FText& OutValue) const;
+	bool TryWriteSettingText(const FText& InValue) const;
+
+	//在注册数据时设置绑定。
+	void SetSettingTextBinding(FOnReadSettingValue InReadDelegate, FOnWriteSettingValue InWriteDelegate);
 };

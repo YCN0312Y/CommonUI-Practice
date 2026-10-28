@@ -11,6 +11,7 @@ class UCommonTextBlock;
 class UBorder;
 class USoundBase;
 class UCommonTextStyle;
+class UYCNGameUserSettings;
 
 UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
 class YCNUIDEMO_API UYCNWidget_EntryBase : public UCommonUserWidget, public IUserObjectListEntry
@@ -52,6 +53,10 @@ protected:
 	//字样式选择
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "YCN Widget|Text Style")
 	TSubclassOf<UCommonTextStyle>TextStyle_Selected;
+
+	//用户设置
+	UPROPERTY(Transient)
+	TWeakObjectPtr<UYCNGameUserSettings>UserSettings;
 
 private:
 	//高亮

@@ -1,12 +1,19 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "YCNUIDemo/UI/ListData/YCNListData_RegisterData.h"
+#include "YCNUIDemo/UI/ListData/YCNListData_Base.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Tab.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Value.h"
+#include "YCNUIDemo/Settings/YCNGameUserSettings.h"
 
 void UYCNListData_RegisterData::InitDataList()
 {
 	AvailableDataList.Reset();
+
+	if (!UserSettings.IsValid())
+	{
+		UserSettings = UYCNGameUserSettings::Get();
+	}
 
 	InitGameSettingsList();
 	InitAudioList();
@@ -48,6 +55,9 @@ void UYCNListData_RegisterData::InitGameSettingsList()
 				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("正常")));
 				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("困难")));
 				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("极难")));
+				GameDifficulty->SetDataDefaultValue(SetDataText(TEXT("简单")));
+				BindCachedValue(GameDifficulty,
+					&UYCNGameUserSettings::GetCachedGameDifficultyText, &UYCNGameUserSettings::SetCachedGameDifficultyText);
 				GameplayTab->AddChildData(GameDifficulty);
 			}
 
@@ -56,10 +66,6 @@ void UYCNListData_RegisterData::InitGameSettingsList()
 			{
 				Test->SetDataID(FName("Test"));
 				Test->SetDataDisplayText(SetDataText(TEXT("测试标签")));
-				Test->AddDataToOptionsList(SetDataText(TEXT("简单")));
-				Test->AddDataToOptionsList(SetDataText(TEXT("正常")));
-				Test->AddDataToOptionsList(SetDataText(TEXT("困难")));
-				Test->AddDataToOptionsList(SetDataText(TEXT("极难")));
 				GameplayTab->AddChildData(Test);
 			}
 		}
@@ -118,4 +124,37 @@ void UYCNListData_RegisterData::InitAssistList()
 FText UYCNListData_RegisterData::SetDataText(const FString& InDaraString)
 {
 	return FText::FromString(InDaraString);
+}
+
+void UYCNListData_RegisterData::BindCachedValue(UYCNListData_Base* InData, FTextSettingGetter InGetter, FTextSettingSetter InSetter)
+{
+	if (!IsValid(InData) || !InGetter || !InSetter)return;
+
+	if(UserSettings.IsValid())
+	{
+		InData->SetSettingTextBinding(
+			FOnReadSettingValue::CreateLambda(
+				[this, InGetter]()->FText
+				{
+					if (UYCNGameUserSettings* Settings = UserSettings.Get())
+					{
+						return (Settings->*InGetter)();
+					}
+
+					return FText::GetEmpty();
+				}),
+			FOnWriteSettingValue::CreateLambda(
+				[this, InSetter](const FText& InValue)
+				{
+					if (UYCNGameUserSettings* Settings = UserSettings.Get())
+					{
+						(Settings->*InSetter)(InValue);
+
+						// 保存设置。
+						Settings->SaveSettings();
+					}
+
+				})
+		);
+	}
 }

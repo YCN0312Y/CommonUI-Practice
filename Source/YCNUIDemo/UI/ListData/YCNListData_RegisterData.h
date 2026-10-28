@@ -6,7 +6,9 @@
 #include "UObject/NoExportTypes.h"
 #include "YCNListData_RegisterData.generated.h"
 
+class UYCNListData_Base;
 class UYCNListData_Tab;
+class UYCNGameUserSettings;
 
 UCLASS(Transient)
 class YCNUIDEMO_API UYCNListData_RegisterData : public UObject
@@ -23,6 +25,12 @@ private:
 	UPROPERTY(Transient)
 	TArray<UYCNListData_Tab*> AvailableDataList;
 
+	//用户设置
+	TWeakObjectPtr<UYCNGameUserSettings>UserSettings;
+
+	using FTextSettingGetter = const FText& (UYCNGameUserSettings::*)() const;
+	using FTextSettingSetter = void (UYCNGameUserSettings::*)(const FText&);
+
 private:
 	//初始化游戏设置
 	void InitGameSettingsList();
@@ -37,6 +45,9 @@ private:
 
 	//设置数据字符串
 	FText SetDataText(const FString& InDaraString);
+
+	//绑定值
+	void BindCachedValue(UYCNListData_Base* InData, FTextSettingGetter InGetter, FTextSettingSetter InSetter);
 
 public:
 	const TArray<UYCNListData_Tab*>& GetAvailableDataList() const { return AvailableDataList; }

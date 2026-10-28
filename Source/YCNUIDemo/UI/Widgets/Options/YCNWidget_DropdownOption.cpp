@@ -17,7 +17,7 @@ void UYCNWidget_DropdownOption::SetOptionListData(UYCNListData_Value* InData)
 
 void UYCNWidget_DropdownOption::AddDataToOptionList()
 {
-	if (!IsValid(ScrollBox_OptionList) || !OptionButton || !IsValid(OptionListData) || OptionListData->GetOptionList().IsEmpty()) return;
+	if (!IsValid(ScrollBox_OptionList) || !OptionButton || !IsValid(OptionListData)) return;
 	
 	ScrollBox_OptionList->ClearChildren();
 

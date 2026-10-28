@@ -5,11 +5,11 @@
 #include "YCNUIDemo/Subsystems/YCNWidgetManagerSubsystem.h"
 #include "YCNUIDemo/FunctionLibrary/YCNFunctionLibrary.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_ButtonBase.h"
+#include "YCNUIDemo/Settings/YCNGameUserSettings.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Value.h"
 #include "YCNUIDemo/Tags/YCNGameplayTags.h"
 #include "CommonTextBlock.h"
 #include "Components/MenuAnchor.h"
-
 
 void UYCNWidget_Entry_Value::NativeOnInitialized()
 {
@@ -32,6 +32,26 @@ void UYCNWidget_Entry_Value::NativeOnListItemObjectSet(UObject* ListItemObject)
 	Super::NativeOnListItemObjectSet(ListItemObject);
 
 	OwningValueData = Cast<UYCNListData_Value>(ListItemObject);
+
+    if (!IsValid(CommonText_SelectedText)) return;
+    
+    CommonText_SelectedText->SetText(FText::GetEmpty());
+
+    if (IsValid(OwningValueData) && OwningValueData->GetOptionList().IsEmpty())
+    {
+        CommonText_SelectedText->SetText(FText::FromString(TEXT("无效的选项")));
+        return;
+    }
+
+    FText CurrentValue;
+
+    if (!OwningValueData->TryReadSettingText(CurrentValue) || CurrentValue.IsEmpty())
+    {
+        CurrentValue = OwningValueData->GetOwningDefaultValue();
+    }
+
+    CommonText_SelectedText->SetText(CurrentValue);
+
 }
 
 FReply UYCNWidget_Entry_Value::NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent)
@@ -67,7 +87,7 @@ void UYCNWidget_Entry_Value::NativeOnEntryReleased()
 
 void UYCNWidget_Entry_Value::OnClicked_DropdownButton()
 {
-    if (!MenuAnchor_Option || MenuAnchor_Option->IsOpen()) return;
+    if (!MenuAnchor_Option || MenuAnchor_Option->IsOpen() || OwningValueData->GetOptionList().IsEmpty()) return;
     
     MenuAnchor_Option->Open(true);
 
@@ -112,7 +132,17 @@ void UYCNWidget_Entry_Value::OnClick_ListCreatedButton(FText InSelectedText)
     if (!CommonText_SelectedText)return;
     CommonText_SelectedText->SetText(InSelectedText);
 
+    if (!IsValid(OwningValueData)) return;
+    
     CloseDropdownMenu();
+
+    const bool bHasWriteBinding = OwningValueData->TryWriteSettingText(InSelectedText);
+
+    if (bHasWriteBinding && IsValid(CommonText_SelectedText))
+    {
+        CommonText_SelectedText->SetText(InSelectedText);
+    }
+
 }
 
 void UYCNWidget_Entry_Value::CloseDropdownMenu(bool bIsFocusThis)

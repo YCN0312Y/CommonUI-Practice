@@ -1,6 +1,7 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "YCNUIDemo/UI/Widgets/Options/EntryWidget/YCNWidget_EntryBase.h"
+#include "YCNUIDemo/Settings/YCNGameUserSettings.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Base.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/Border.h"
@@ -23,6 +24,10 @@ void UYCNWidget_EntryBase::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 	SwitchItemStatus(IsListItemSelected());
 
+	if (!UserSettings.IsValid())
+	{
+		UserSettings = UYCNGameUserSettings::Get();
+	}
 }
 
 void UYCNWidget_EntryBase::NativeOnItemSelectionChanged(bool bIsSelected)
