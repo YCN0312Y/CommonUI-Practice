@@ -14,6 +14,9 @@ class UYCNWidget_ButtonBase;
 class UYCNWidget_ListViewBase;
 class UBorder;
 class UYCNWidget_Entry_Value;
+class UYCNWidget_DetailsBase;
+class UYCNListData_Tab;
+class UYCNListData_Base;
 
 UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
 class YCNUIDEMO_API UYCNWidget_Options : public UYCNWidget_ActivatableWidgetBase
@@ -43,6 +46,9 @@ private:
 	//下拉框背景
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Option Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<UBorder>Border_DropdownBlocker;
+	//详情页
+	UPROPERTY(BlueprintReadOnly, Category = "YCN Option Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<UYCNWidget_DetailsBase>DetailsBase_Details;
 	/*
 	* BindWidget End----------
 	*/
@@ -61,6 +67,12 @@ private:
 	UPROPERTY(Transient)
 	TWeakObjectPtr<UYCNWidget_Entry_Value> SelectedDropdownEntry;
 
+	//唯一选择的条目
+	UPROPERTY(Transient)
+	TWeakObjectPtr<UYCNListData_Base>UniqueSelectedItem;
+
+	//添加重置操作
+	bool bResetActionAdded;
 private:
 	//点击重置回调
 	void OnClicked_Reset();
@@ -78,10 +90,21 @@ private:
 	//列表生成小条目时
 	void OnListEntryGenerated(UUserWidget& EntryWidget);
 
+	//设置下拉菜单背景可视
 	void SetDropdownBlockerVisible(bool bIsOpen);
 
 	//打开下拉菜单回调
 	void OnEntryDropdownOpenChanged(bool bIsOpen, UYCNWidget_Entry_Value* SourceEntry);
+
+	//小条目选择更新回调
+	void OnSubTabSelectionChanged(UObject* InSelectedItem);
+
+	//更新详情页
+	void UpdateDetails(UYCNListData_Tab* InData);
+
+	void AddResetAction(const FName& InTabID);
+
+	void OnSettingValueChanged();
 
 	UFUNCTION()
 	FEventReply OnDropdownBlockerMouseButtonDown(FGeometry MyGeometry, const FPointerEvent& MouseEvent);

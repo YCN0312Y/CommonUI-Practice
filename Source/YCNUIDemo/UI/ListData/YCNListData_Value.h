@@ -6,6 +6,19 @@
 #include "YCNUIDemo/UI/ListData/YCNListData_Base.h"
 #include "YCNListData_Value.generated.h"
 
+USTRUCT()
+struct FValueDataList
+{
+	GENERATED_BODY()
+
+public:
+	UPROPERTY()
+	FName DataID;
+
+	UPROPERTY()
+	FText OptionText;
+};
+
 UCLASS(Transient)
 class YCNUIDEMO_API UYCNListData_Value : public UYCNListData_Base
 {
@@ -14,14 +27,14 @@ class YCNUIDEMO_API UYCNListData_Value : public UYCNListData_Base
 private:
 	//选项列表
 	UPROPERTY(Transient)
-	TArray<FText>OptionList;
+	TArray<FValueDataList>OptionList;
 
 	//默认值
 	UPROPERTY(Transient)
 	FText OwningDefaultValue;
 public:
 	//添加数据到选项列表
-	void AddDataToOptionsList(const FText& InOption);
+	void AddDataToOptionsList(const FName& InDataID, const FText& InOptionText);
 
 	//设置数据默认值
 	void SetDataDefaultValue(const FText& InValue);
@@ -30,5 +43,5 @@ public:
 	const FText& GetOwningDefaultValue()const;
 
 	//获取选项列表
-	const TArray<FText>& GetOptionList()const { return OptionList; }
+	const TArray<FValueDataList>& GetOptionList()const { return OptionList; }
 };

@@ -21,14 +21,18 @@ void UYCNWidget_DropdownOption::AddDataToOptionList()
 	
 	ScrollBox_OptionList->ClearChildren();
 
-	for (const FText& OptionText : OptionListData->GetOptionList())
+	for (const FValueDataList& OptionData : OptionListData->GetOptionList())
 	{
-		UYCNWidget_ButtonBase* CreatedButton = CreateWidget<UYCNWidget_ButtonBase>(GetOwningPC(), OptionButton.Get());
-		if (CreatedButton)
+		const FText& OptionText = OptionData.OptionText;
+		if (GetOwningPlayer())
 		{
-			CreatedButton->SetButtonDisplayText(OptionText);
-			CreatedButton->OnClicked().AddUObject(this, &UYCNWidget_DropdownOption::OnClick_CreatedButton, OptionText);
-			ScrollBox_OptionList->AddChild(CreatedButton);
+			UYCNWidget_ButtonBase* CreatedButton = CreateWidget<UYCNWidget_ButtonBase>(GetOwningPlayer(), OptionButton.Get());
+			if (CreatedButton)
+			{
+				CreatedButton->SetButtonDisplayText(OptionText);
+				CreatedButton->OnClicked().AddUObject(this, &UYCNWidget_DropdownOption::OnClick_CreatedButton, OptionText);
+				ScrollBox_OptionList->AddChild(CreatedButton);
+			}
 		}
 	}
 }

@@ -1,8 +1,10 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
 #include "YCNUIDemo/UI/Widgets/Options/YCNWidget_Options.h"
+#include "YCNUIDemo/UI/Widgets/Options/YCNWidget_DetailsBase.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_RegisterData.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Tab.h"
+#include "YCNUIDemo/UI/ListData/YCNListData_Value.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_ButtonBase.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_TabListBase.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_ListViewBase.h"
@@ -21,6 +23,12 @@ void UYCNWidget_Options::NativeOnInitialized()
 	{
 		ResetActionHandle = RegisterUIActionBinding(
 			FBindUIActionArgs(ResetAction, true, FSimpleDelegate::CreateUObject(this, &UYCNWidget_Options::OnClicked_Reset)));
+		if (ResetActionHandle.IsValid())
+		{
+			//ResetActionHandle 有效就移除
+			RemoveActionBinding(ResetActionHandle);
+		}
+		bResetActionAdded = false;
 	}
 
 	if (IsValid(TabList_Tab))
@@ -30,7 +38,8 @@ void UYCNWidget_Options::NativeOnInitialized()
 	if (IsValid(ListView_SubTab))
 	{
 		ListView_SubTab->SetSelectionMode(ESelectionMode::Single);
-		ListView_SubTab->OnEntryWidgetGenerated().AddUObject(this,&UYCNWidget_Options::OnListEntryGenerated);
+		ListView_SubTab->OnEntryWidgetGenerated().AddUObject(this, &UYCNWidget_Options::OnListEntryGenerated);
+		ListView_SubTab->OnItemSelectionChanged().AddUObject(this, &UYCNWidget_Options::OnSubTabSelectionChanged);
 	}
 	if (IsValid(Border_DropdownBlocker))
 	{
@@ -113,7 +122,9 @@ void UYCNWidget_Options::OnTabSelected(FName TabID)
 {
 	if (!IsValid(ListView_SubTab))return;
 
-	TWeakObjectPtr<UYCNListData_Tab>SelectedTab = nullptr;
+	AddResetAction(TabID);
+
+	UYCNListData_Tab* SelectedTab = nullptr;
 
 	if (IsValid(OwningRegisterData) && !TabID.IsNone())
 	{
@@ -122,7 +133,7 @@ void UYCNWidget_Options::OnTabSelected(FName TabID)
 
 	ListView_SubTab->ClearSelection();
 
-	if (!SelectedTab.IsValid())
+	if (!IsValid(SelectedTab))
 	{
 		ListView_SubTab->ClearListItems();
 		return;
@@ -130,6 +141,12 @@ void UYCNWidget_Options::OnTabSelected(FName TabID)
 
 	ListView_SubTab->SetListItems(SelectedTab->GetChildDataList());
 
+	if (IsValid(SelectedTab))
+	{
+		//更新详情面板
+		UpdateDetails(SelectedTab);
+	}
+	
 	if (!ListView_SubTab->GetListItems().IsEmpty())
 	{
 		ListView_SubTab->SetSelectedIndex(0);
@@ -149,6 +166,7 @@ UYCNListData_RegisterData* UYCNWidget_Options::InitOwningRegisterData()
 	{
 		OwningRegisterData = NewObject<UYCNListData_RegisterData>(this);
 		OwningRegisterData->InitDataList();
+		OwningRegisterData->OnSettingValueChanged.BindUObject(this, &UYCNWidget_Options::OnSettingValueChanged);
 	}
 
 	return OwningRegisterData.Get();
@@ -190,6 +208,97 @@ void UYCNWidget_Options::OnEntryDropdownOpenChanged(bool bIsOpen, UYCNWidget_Ent
 		SelectedDropdownEntry.Reset();
 		SetDropdownBlockerVisible(false);
 	}
+}
+
+void UYCNWidget_Options::OnSubTabSelectionChanged(UObject* InSelectedItem)
+{
+	if (!IsValid(DetailsBase_Details))return;
+
+	UniqueSelectedItem = Cast<UYCNListData_Base>(InSelectedItem);
+
+	if (UniqueSelectedItem.IsValid())
+	{
+		DetailsBase_Details->SetDataDetails(UniqueSelectedItem.Get()->GetDataDisplayText(), UniqueSelectedItem.Get()->GetDataDescription());
+	}
+	else
+	{
+		DetailsBase_Details->SetDataDetails(FText::GetEmpty(), FText::GetEmpty());
+	}
+}
+
+void UYCNWidget_Options::UpdateDetails(UYCNListData_Tab* InData)
+{
+	if (!DetailsBase_Details)return;
+	
+	if (InData->GetChildDataList().IsEmpty())
+	{
+		UE_LOG(LogYCNCommonUI, Error, TEXT("%s没有子数据!"), *InData->GetDataDisplayText().ToString());
+		DetailsBase_Details->SetDataDetails(FText::GetEmpty(), FText::GetEmpty());
+	}
+	else
+	{
+		TArray<UYCNListData_Base*>ChildData = InData->GetChildDataList();
+
+		const UYCNListData_Base* FirstData = ChildData.IsEmpty() ? nullptr : ChildData[0];
+
+		if (IsValid(FirstData))
+		{
+			
+			DetailsBase_Details->SetDataDetails(FirstData->GetDataDisplayText(), FirstData->GetDataDescription());
+		}
+	}
+}
+
+void UYCNWidget_Options::AddResetAction(const FName& InTabID)
+{
+	if (!ResetActionHandle.IsValid() || !IsValid(OwningRegisterData) || InTabID.IsNone())return;
+
+	bool bShouldShowReset = false;
+
+	UYCNListData_Tab* SelctedTab = OwningRegisterData->GetDataByDataID(InTabID);
+	if (!SelctedTab)return;
+
+	for (UYCNListData_Base* ChildData : SelctedTab->GetChildDataList())
+	{
+		UYCNListData_Value* ValueData = Cast<UYCNListData_Value>(ChildData);
+		if (!ValueData)continue;
+
+		FText CurrentText;
+		if (!ValueData->TryReadSettingText(CurrentText))continue;
+
+		const FText& DefaultValue = ValueData->GetOwningDefaultValue();
+		if (CurrentText.IsEmpty())
+		{
+			CurrentText = DefaultValue;
+		}
+
+		if (!CurrentText.EqualTo(DefaultValue))
+		{
+			bShouldShowReset = true;
+			break;
+		}
+	}
+
+	//如果没有需要绑定的就返回
+	if (bShouldShowReset == bResetActionAdded)return;
+
+	if (bShouldShowReset)
+	{
+		AddActionBinding(ResetActionHandle);
+	}
+	else
+	{
+		RemoveActionBinding(ResetActionHandle);
+	}
+
+	bResetActionAdded = bShouldShowReset;
+}
+
+void UYCNWidget_Options::OnSettingValueChanged()
+{
+	const FName CurrentTabID = IsValid(TabList_Tab) ? TabList_Tab->GetSelectedTabId() : NAME_None;
+
+	AddResetAction(CurrentTabID);
 }
 
 FEventReply UYCNWidget_Options::OnDropdownBlockerMouseButtonDown(FGeometry MyGeometry, const FPointerEvent& MouseEvent)

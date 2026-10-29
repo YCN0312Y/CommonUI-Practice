@@ -3,9 +3,13 @@
 #include "YCNUIDemo/UI/ListData/YCNListData_Value.h"
 #include "YCNUIDemo/Settings/YCNGameUserSettings.h"
 
-void UYCNListData_Value::AddDataToOptionsList(const FText& InOption)
+void UYCNListData_Value::AddDataToOptionsList(const FName& InDataID, const FText& InOptionText)
 {
-	OptionList.Add(InOption);
+	FValueDataList ValueDataList;
+	ValueDataList.DataID = InDataID;
+	ValueDataList.OptionText = InOptionText;
+
+	OptionList.Add(ValueDataList);
 }
 
 void UYCNListData_Value::SetDataDefaultValue(const FText& InDefaultValue)

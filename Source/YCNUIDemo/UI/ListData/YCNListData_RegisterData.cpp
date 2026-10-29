@@ -51,11 +51,16 @@ void UYCNListData_RegisterData::InitGameSettingsList()
 			{
 				GameDifficulty->SetDataID(FName("GameDifficulty"));
 				GameDifficulty->SetDataDisplayText(SetDataText(TEXT("游戏难度")));
-				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("简单")));
-				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("正常")));
-				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("困难")));
-				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("极难")));
+				GameDifficulty->AddDataToOptionsList(FName("Easy"), SetDataText(TEXT("简单")));
+				GameDifficulty->AddDataToOptionsList(FName("Normal"), SetDataText(TEXT("正常")));
+				GameDifficulty->AddDataToOptionsList(FName("Difficulty"), SetDataText(TEXT("困难")));
+				GameDifficulty->AddDataToOptionsList(FName("Hardest"), SetDataText(TEXT("极难")));
 				GameDifficulty->SetDataDefaultValue(SetDataText(TEXT("简单")));
+				const FString Easy = TEXT("简单：专注于剧情与探索，敌人较弱且资源充沛，容错率极高，适合新手或轻松体验。\n\n");
+				const FString Normal = TEXT("正常：制作组推荐的基准难度，攻防均衡，需要适度运用操作与策略，体验平滑充实。\n\n");
+				const FString Difficulty = TEXT("困难：敌人更具侵略性，失误代价更高，考验核心机制掌握与战术应变。\n\n");
+				const FString Hardest = TEXT("极难：极限试炼，容错率近乎为零，资源匮乏且敌人致命，专为追求极致挑战的硬核玩家准备。\n\n");
+				GameDifficulty->SetDataDescription(SetDataText(Easy + Normal + Difficulty + Hardest));
 				BindCachedValue(GameDifficulty,
 					&UYCNGameUserSettings::GetCachedGameDifficultyText, &UYCNGameUserSettings::SetCachedGameDifficultyText);
 				GameplayTab->AddChildData(GameDifficulty);
@@ -152,6 +157,8 @@ void UYCNListData_RegisterData::BindCachedValue(UYCNListData_Base* InData, FText
 
 						// 保存设置。
 						Settings->SaveSettings();
+
+						OnSettingValueChanged.Execute();
 					}
 
 				})

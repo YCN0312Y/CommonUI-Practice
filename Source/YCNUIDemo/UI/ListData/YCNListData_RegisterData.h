@@ -28,9 +28,13 @@ private:
 	//用户设置
 	TWeakObjectPtr<UYCNGameUserSettings>UserSettings;
 
+	//函数返回类型 (指向这个类的成员函数) (形参)
 	using FTextSettingGetter = const FText& (UYCNGameUserSettings::*)() const;
 	using FTextSettingSetter = void (UYCNGameUserSettings::*)(const FText&);
 
+public:
+	DECLARE_DELEGATE(FOnSettingsValueChanged)
+	FOnSettingsValueChanged OnSettingValueChanged;
 private:
 	//初始化游戏设置
 	void InitGameSettingsList();
