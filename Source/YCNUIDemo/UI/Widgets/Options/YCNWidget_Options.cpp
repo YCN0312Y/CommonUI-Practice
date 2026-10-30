@@ -3,15 +3,19 @@
 #include "YCNUIDemo/UI/Widgets/Options/YCNWidget_Options.h"
 #include "YCNUIDemo/UI/Widgets/Options/YCNWidget_DetailsBase.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_RegisterData.h"
+#include "YCNUIDemo/UI/ListData/YCNListData_Base.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Tab.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Value.h"
+#include "YCNUIDemo/UI/ListData/YCNListData_String.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_ButtonBase.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_TabListBase.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_ListViewBase.h"
 #include "YCNUIDemo/UI/Widgets/Options/EntryWidget/YCNWidget_Entry_Value.h"
+#include "YCNUIDemo/Subsystems/YCNWidgetManagerSubsystem.h"
 #include "Input/CommonUIInputTypes.h"
 #include "ICommonInputModule.h"
 #include "Components/Border.h"
+#include "YCNUIDemo/Msic/YCNDataType.h"
 
 #include "YCNUIDemo/DebugHelper/YCNDebugHelper.h"
 
@@ -115,7 +119,42 @@ void UYCNWidget_Options::NativeOnDeactivated()
 
 void UYCNWidget_Options::OnClicked_Reset()
 {
-	YCNDebug::Print("重置");
+	if (!IsValid(OwningRegisterData) || !IsValid(TabList_Tab)) return;
+	
+	//当前选择的标签ID
+	const FName CurrentSelectedTabID = TabList_Tab->GetSelectedTabId();
+	//当前标签
+	UYCNListData_Tab* CurrentTab = OwningRegisterData->GetDataByDataID(CurrentSelectedTabID);
+
+	UYCNWidgetManagerSubsystem* Manager = UYCNWidgetManagerSubsystem::Get(this);
+
+	if (!IsValid(CurrentTab) || !IsValid(Manager)) return;
+	
+	//记录点击重置时的页面，回调执行时检查对象是否仍有效。
+	TWeakObjectPtr<UYCNListData_Tab> WeakTab = CurrentTab;
+
+	Manager->PushConfirmationToStack(
+		EConfirmationWindowsType::YesNO,
+		FText::FromString(TEXT("确定重置当前页面所有内容吗？")),
+		[WeakTab](EConfirmationWindowsButtonType ButtonType)
+		{
+			// 点击取消时不执行重置。
+			if (ButtonType != EConfirmationWindowsButtonType::Yes) return;
+
+			//要重置的标签页
+			UYCNListData_Tab* TabToReset = WeakTab.Get();
+			if (!IsValid(TabToReset)) return;
+			
+			for (UYCNListData_Base* Data : TabToReset->GetChildDataList())
+			{
+				UYCNListData_Value* ResetData = Cast<UYCNListData_Value>(Data);
+
+				if (IsValid(ResetData))
+				{
+					ResetData->ResetToDefault();
+				}
+			}
+		});
 }
 
 void UYCNWidget_Options::OnTabSelected(FName TabID)
@@ -260,7 +299,7 @@ void UYCNWidget_Options::AddResetAction(const FName& InTabID)
 
 	for (UYCNListData_Base* ChildData : SelctedTab->GetChildDataList())
 	{
-		UYCNListData_Value* ValueData = Cast<UYCNListData_Value>(ChildData);
+		UYCNListData_String* ValueData = Cast<UYCNListData_String>(ChildData);
 		if (!ValueData)continue;
 
 		FText CurrentText;
@@ -299,6 +338,18 @@ void UYCNWidget_Options::OnSettingValueChanged()
 	const FName CurrentTabID = IsValid(TabList_Tab) ? TabList_Tab->GetSelectedTabId() : NAME_None;
 
 	AddResetAction(CurrentTabID);
+
+	if (!IsValid(ListView_SubTab)) return;
+	
+
+	// 更新当前已经显示出来的文本 Entry。
+	for (UUserWidget* EntryWidget : ListView_SubTab->GetDisplayedEntryWidgets())
+	{
+		if (UYCNWidget_Entry_Value* ValueEntry = Cast<UYCNWidget_Entry_Value>(EntryWidget))
+		{
+			ValueEntry->RefreshSelectedText();
+		}
+	}
 }
 
 FEventReply UYCNWidget_Options::OnDropdownBlockerMouseButtonDown(FGeometry MyGeometry, const FPointerEvent& MouseEvent)

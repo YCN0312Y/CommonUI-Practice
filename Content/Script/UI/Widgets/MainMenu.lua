@@ -153,7 +153,7 @@ function M:OnClick_Quit(Button)
         return
     end
 
-    local Action = PushConfirmation.PushConfrimationWindow(self, WindowsType.YesNO, "退出游戏", "确定退出游戏吗？", SoftWidget)
+    local Action = PushConfirmation.PushConfrimationWindow(self, WindowsType.YesNO, "确定退出游戏吗？", SoftWidget)
 
     if Action then
         Action.OnButtonClicked:Add(self, M.OnConfrimationButtonClicked)

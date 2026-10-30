@@ -9,6 +9,7 @@
 #include "Engine/AssetManager.h"
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "YCNUIDemo/UI/Widgets/Options/YCNWidget_DropdownOption.h"
+#include "YCNUIDemo/Msic/YCNDataType.h"
 
 UYCNWidgetManagerSubsystem* UYCNWidgetManagerSubsystem::Get(const UObject* WorldContextObject)
 {
@@ -49,15 +50,15 @@ void UYCNWidgetManagerSubsystem::PushSoftWidgetToStack(UPARAM(meta = (Categories
 	);
 }
 
-void UYCNWidgetManagerSubsystem::PushConfirmationToStack(EConfirmationWindowsType InWindowsType, const FText& InWindowDisplayText, const FText& InWinodwMessageText, TFunction<void(EConfirmationWindowsButtonType)> ButtonClickCallback)
+void UYCNWidgetManagerSubsystem::PushConfirmationToStack(EConfirmationWindowsType InWindowsType, const FText& InWinodwMessageText, TFunction<void(EConfirmationWindowsButtonType)> ButtonClickCallback)
 {
 	switch (InWindowsType)
 	{
 	case EConfirmationWindowsType::OK:
-		PushWindowInfo = UYCNWindowInfo::CreateOKButton(InWindowDisplayText, InWinodwMessageText);
+		PushWindowInfo = UYCNWindowInfo::CreateOKButton(InWinodwMessageText);
 		break;
 	case EConfirmationWindowsType::YesNO:
-		PushWindowInfo = UYCNWindowInfo::CreateYesNoButton(InWindowDisplayText, InWinodwMessageText);
+		PushWindowInfo = UYCNWindowInfo::CreateYesNoButton(InWinodwMessageText);
 		break;
 	}
 

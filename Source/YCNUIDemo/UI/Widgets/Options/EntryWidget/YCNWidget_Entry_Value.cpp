@@ -6,7 +6,7 @@
 #include "YCNUIDemo/FunctionLibrary/YCNFunctionLibrary.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_ButtonBase.h"
 #include "YCNUIDemo/Settings/YCNGameUserSettings.h"
-#include "YCNUIDemo/UI/ListData/YCNListData_Value.h"
+#include "YCNUIDemo/UI/ListData/YCNListData_String.h"
 #include "YCNUIDemo/Tags/YCNGameplayTags.h"
 #include "CommonTextBlock.h"
 #include "Components/MenuAnchor.h"
@@ -31,26 +31,11 @@ void UYCNWidget_Entry_Value::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
 	Super::NativeOnListItemObjectSet(ListItemObject);
 
-	OwningValueData = Cast<UYCNListData_Value>(ListItemObject);
+	OwningValueData = Cast<UYCNListData_String>(ListItemObject);
 
     if (!IsValid(CommonText_SelectedText)) return;
     
-    CommonText_SelectedText->SetText(FText::GetEmpty());
-
-    if (IsValid(OwningValueData) && OwningValueData->GetOptionList().IsEmpty())
-    {
-        CommonText_SelectedText->SetText(FText::FromString(TEXT("无效的选项")));
-        return;
-    }
-
-    FText CurrentValue;
-
-    if (!OwningValueData->TryReadSettingText(CurrentValue) || CurrentValue.IsEmpty())
-    {
-        CurrentValue = OwningValueData->GetOwningDefaultValue();
-    }
-
-    CommonText_SelectedText->SetText(CurrentValue);
+    RefreshSelectedText();
 
 }
 
@@ -161,4 +146,26 @@ void UYCNWidget_Entry_Value::CloseDropdownMenu(bool bIsFocusThis)
             }
         }
 	}
+}
+
+void UYCNWidget_Entry_Value::RefreshSelectedText()
+{
+    if (!IsValid(CommonText_SelectedText) || !IsValid(OwningValueData)) return;
+    
+    CommonText_SelectedText->SetText(FText::GetEmpty());
+
+    if (OwningValueData->GetOptionList().IsEmpty())
+    {
+        CommonText_SelectedText->SetText(FText::FromString(TEXT("无效的选项")));
+        return;
+    }
+
+    FText CurrentValue;
+
+    if (!OwningValueData->TryReadSettingText(CurrentValue) || CurrentValue.IsEmpty())
+    {
+        CurrentValue = OwningValueData->GetOwningDefaultValue();
+    }
+
+    CommonText_SelectedText->SetText(CurrentValue);
 }

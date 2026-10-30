@@ -9,7 +9,7 @@
 
 class UYCNWidget_ButtonBase;
 class UCommonTextBlock;
-class UYCNListData_Value;
+class UYCNListData_String;
 class UYCNWidget_DropdownOption;
 class UMenuAnchor;
 
@@ -50,7 +50,7 @@ private:
 	*/
 
 	UPROPERTY(Transient)
-	TObjectPtr<UYCNListData_Value>OwningValueData;
+	TObjectPtr<UYCNListData_String>OwningValueData;
 
 	//下拉菜单类
 	UPROPERTY(EditDefaultsOnly, Category = "YCN Widget")
@@ -83,4 +83,7 @@ private:
 public:
 	//关闭下拉菜单
 	void CloseDropdownMenu(bool bIsFocusThis = true);
+
+	// 从当前设置重新读取并显示选择文本。
+	void RefreshSelectedText();
 };

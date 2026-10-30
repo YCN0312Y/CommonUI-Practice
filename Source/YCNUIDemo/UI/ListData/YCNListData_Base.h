@@ -61,6 +61,9 @@ public:
 	bool TryReadSettingText(FText& OutValue) const;
 	bool TryWriteSettingText(const FText& InValue) const;
 
+	//检查写代理是否绑定了函数
+	bool HasWriteBinding()const;
+
 	//在注册数据时设置绑定。
 	void SetSettingTextBinding(FOnReadSettingValue InReadDelegate, FOnWriteSettingValue InWriteDelegate);
 };

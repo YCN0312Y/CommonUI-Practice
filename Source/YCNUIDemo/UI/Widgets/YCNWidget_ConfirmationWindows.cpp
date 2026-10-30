@@ -7,12 +7,11 @@
 
 #include "YCNUIDemo/DebugHelper/YCNDebugHelper.h"
 
-UYCNWindowInfo* UYCNWindowInfo::CreateOKButton(const FText& InWindowsDiaplayText, const FText& InWindowMessageText)
+UYCNWindowInfo* UYCNWindowInfo::CreateOKButton(const FText& InWindowMessageText)
 {
 	UYCNWindowInfo* OkWindow = NewObject<UYCNWindowInfo>();
 	if (OkWindow)
 	{
-		OkWindow->WindowDisplayText = InWindowsDiaplayText;
 		OkWindow->WindowMessageText = InWindowMessageText;
 
 		FWindowButtonInfo OKButtonInfo;
@@ -26,12 +25,11 @@ UYCNWindowInfo* UYCNWindowInfo::CreateOKButton(const FText& InWindowsDiaplayText
 	return nullptr;
 }
 
-UYCNWindowInfo* UYCNWindowInfo::CreateYesNoButton(const FText& InWindowsDiaplayText, const FText& InWindowMessageText)
+UYCNWindowInfo* UYCNWindowInfo::CreateYesNoButton(const FText& InWindowMessageText)
 {
 	UYCNWindowInfo* YesNoWindow = NewObject<UYCNWindowInfo>();
 	if (YesNoWindow)
 	{
-		YesNoWindow->WindowDisplayText = InWindowsDiaplayText;
 		YesNoWindow->WindowMessageText = InWindowMessageText;
 
 		FWindowButtonInfo YesButtonInfo;
@@ -52,9 +50,8 @@ UYCNWindowInfo* UYCNWindowInfo::CreateYesNoButton(const FText& InWindowsDiaplayT
 
 void UYCNWidget_ConfirmationWindows::ButtonClicked(UYCNWindowInfo* InWindowInfo, TFunction<void(EConfirmationWindowsButtonType)> ButtonClickCallback)
 {
-	if (!InWindowInfo || !CommonText_WindowDisplayText || !CommonText_WindowMessageText || !EntryBox_Button)return;
+	if (!InWindowInfo || !CommonText_WindowMessageText || !EntryBox_Button)return;
 
-	CommonText_WindowDisplayText->SetText(InWindowInfo->WindowDisplayText);
 	CommonText_WindowMessageText->SetText(InWindowInfo->WindowMessageText);
 
 	EntryBox_Button->Reset<UYCNWidget_ButtonBase>(

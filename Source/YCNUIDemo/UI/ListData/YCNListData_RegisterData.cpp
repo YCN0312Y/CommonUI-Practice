@@ -3,7 +3,7 @@
 #include "YCNUIDemo/UI/ListData/YCNListData_RegisterData.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Base.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Tab.h"
-#include "YCNUIDemo/UI/ListData/YCNListData_Value.h"
+#include "YCNUIDemo/UI/ListData/YCNListData_String.h"
 #include "YCNUIDemo/Settings/YCNGameUserSettings.h"
 
 void UYCNListData_RegisterData::InitDataList()
@@ -46,16 +46,16 @@ void UYCNListData_RegisterData::InitGameSettingsList()
 
 		//游戏难度
 		{
-			UYCNListData_Value* GameDifficulty = NewObject<UYCNListData_Value>();
+			UYCNListData_String* GameDifficulty = NewObject<UYCNListData_String>();
 			if (GameDifficulty)
 			{
 				GameDifficulty->SetDataID(FName("GameDifficulty"));
 				GameDifficulty->SetDataDisplayText(SetDataText(TEXT("游戏难度")));
-				GameDifficulty->AddDataToOptionsList(FName("Easy"), SetDataText(TEXT("简单")));
-				GameDifficulty->AddDataToOptionsList(FName("Normal"), SetDataText(TEXT("正常")));
-				GameDifficulty->AddDataToOptionsList(FName("Difficulty"), SetDataText(TEXT("困难")));
-				GameDifficulty->AddDataToOptionsList(FName("Hardest"), SetDataText(TEXT("极难")));
-				GameDifficulty->SetDataDefaultValue(SetDataText(TEXT("简单")));
+				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("简单")));
+				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("正常")));
+				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("困难")));
+				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("极难")));
+				GameDifficulty->SetOwningDefaultValue(SetDataText(TEXT("简单")));
 				const FString Easy = TEXT("简单：专注于剧情与探索，敌人较弱且资源充沛，容错率极高，适合新手或轻松体验。\n\n");
 				const FString Normal = TEXT("正常：制作组推荐的基准难度，攻防均衡，需要适度运用操作与策略，体验平滑充实。\n\n");
 				const FString Difficulty = TEXT("困难：敌人更具侵略性，失误代价更高，考验核心机制掌握与战术应变。\n\n");
@@ -66,7 +66,7 @@ void UYCNListData_RegisterData::InitGameSettingsList()
 				GameplayTab->AddChildData(GameDifficulty);
 			}
 
-			UYCNListData_Value* Test = NewObject<UYCNListData_Value>();
+			UYCNListData_String* Test = NewObject<UYCNListData_String>();
 			if (Test)
 			{
 				Test->SetDataID(FName("Test"));
@@ -74,7 +74,6 @@ void UYCNListData_RegisterData::InitGameSettingsList()
 				GameplayTab->AddChildData(Test);
 			}
 		}
-		
 	}
 }
 

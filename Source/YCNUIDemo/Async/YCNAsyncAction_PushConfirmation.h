@@ -22,8 +22,6 @@ private:
 	UPROPERTY()
 	UObject* CacedWorldContextObject;
 	UPROPERTY()
-	FText CachedWindowDisplayText;
-	UPROPERTY()
 	FText CachedWindowMessageText;
 	UPROPERTY()
 	EConfirmationWindowsType CachedWindowsType;
@@ -40,7 +38,6 @@ public:
 	static UYCNAsyncAction_PushConfirmation* PushConfrimationWindow(
 		UObject* InWorldContextObject, 
 		EConfirmationWindowsType InWindowsType,
-		FText InDisplayText,
 		FText InMessageText,
 		TSoftClassPtr<UYCNWidget_ActivatableWidgetBase>InWidget);
 };

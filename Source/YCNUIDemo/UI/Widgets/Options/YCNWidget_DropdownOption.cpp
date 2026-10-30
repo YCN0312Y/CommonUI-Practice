@@ -2,13 +2,13 @@
 
 #include "YCNUIDemo/UI/Widgets/Options/YCNWidget_DropdownOption.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_ButtonBase.h"
-#include "YCNUIDemo/UI/ListData/YCNListData_Value.h"
+#include "YCNUIDemo/UI/ListData/YCNListData_String.h"
 #include "Components/ScrollBox.h"
 #include "CommonTextBlock.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
 
-void UYCNWidget_DropdownOption::SetOptionListData(UYCNListData_Value* InData)
+void UYCNWidget_DropdownOption::SetOptionListData(UYCNListData_String* InData)
 {
 	OptionListData = InData;
 
@@ -21,16 +21,15 @@ void UYCNWidget_DropdownOption::AddDataToOptionList()
 	
 	ScrollBox_OptionList->ClearChildren();
 
-	for (const FValueDataList& OptionData : OptionListData->GetOptionList())
+	for (const FText& FoundOptionData : OptionListData->GetOptionList())
 	{
-		const FText& OptionText = OptionData.OptionText;
 		if (GetOwningPlayer())
 		{
 			UYCNWidget_ButtonBase* CreatedButton = CreateWidget<UYCNWidget_ButtonBase>(GetOwningPlayer(), OptionButton.Get());
 			if (CreatedButton)
 			{
-				CreatedButton->SetButtonDisplayText(OptionText);
-				CreatedButton->OnClicked().AddUObject(this, &UYCNWidget_DropdownOption::OnClick_CreatedButton, OptionText);
+				CreatedButton->SetButtonDisplayText(FoundOptionData);
+				CreatedButton->OnClicked().AddUObject(this, &UYCNWidget_DropdownOption::OnClick_CreatedButton, FoundOptionData);
 				ScrollBox_OptionList->AddChild(CreatedButton);
 			}
 		}

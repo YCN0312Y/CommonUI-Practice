@@ -8,7 +8,7 @@
 
 class UYCNWidget_ButtonBase;
 class UScrollBox;
-class UYCNListData_Value;
+class UYCNListData_String;
 class USizeBox;
 
 UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
@@ -28,7 +28,7 @@ private:
 	TObjectPtr<UYCNWidget_ButtonBase>CommonButton_Next;
 	//选项列表数据
 	UPROPERTY(Transient)
-	TObjectPtr<UYCNListData_Value>OptionListData;
+	TObjectPtr<UYCNListData_String>OptionListData;
 	//选项列表按钮
 	UPROPERTY(EditDefaultsOnly, Category = "YCN Widget")
 	TSubclassOf<UYCNWidget_ButtonBase>OptionButton;
@@ -40,7 +40,7 @@ public:
 
 public:
 	//设置选项列表数据
-	void SetOptionListData(UYCNListData_Value* InData);
+	void SetOptionListData(UYCNListData_String* InData);
 	//添加数据到选项列表
 	void AddDataToOptionList();
 

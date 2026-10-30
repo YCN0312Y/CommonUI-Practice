@@ -13,7 +13,7 @@ void UYCNAsyncAction_PushConfirmation::Activate()
 	if (WidgetManager)
 	{
 		WidgetManager->PushConfirmationToStack(
-			CachedWindowsType, CachedWindowDisplayText, CachedWindowMessageText,
+			CachedWindowsType, CachedWindowMessageText,
 			[this](EConfirmationWindowsButtonType ClickedButtonType)
 			{
 				OnButtonClicked.Broadcast(ClickedButtonType);
@@ -22,7 +22,7 @@ void UYCNAsyncAction_PushConfirmation::Activate()
 	SetReadyToDestroy();
 }
 
-UYCNAsyncAction_PushConfirmation* UYCNAsyncAction_PushConfirmation::PushConfrimationWindow(UObject* InWorldContextObject, EConfirmationWindowsType InWindowsType, FText InDisplayText, FText InMessageText, TSoftClassPtr<UYCNWidget_ActivatableWidgetBase> InWidget)
+UYCNAsyncAction_PushConfirmation* UYCNAsyncAction_PushConfirmation::PushConfrimationWindow(UObject* InWorldContextObject, EConfirmationWindowsType InWindowsType, FText InMessageText, TSoftClassPtr<UYCNWidget_ActivatableWidgetBase> InWidget)
 {
 	if (!IsValid(InWorldContextObject) || InWidget.IsNull())
 	{
@@ -34,7 +34,6 @@ UYCNAsyncAction_PushConfirmation* UYCNAsyncAction_PushConfirmation::PushConfrima
 	{
 		Node->CacedWorldContextObject = InWorldContextObject;
 		Node->CachedWindowsType = InWindowsType;
-		Node->CachedWindowDisplayText = InDisplayText;
 		Node->CachedWindowMessageText = InMessageText;
 		Node->CachedWidget = InWidget;
 

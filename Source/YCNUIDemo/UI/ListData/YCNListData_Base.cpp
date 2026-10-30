@@ -30,3 +30,8 @@ bool UYCNListData_Base::TryWriteSettingText(const FText& InValue) const
     }
 	return false;
 }
+
+bool UYCNListData_Base::HasWriteBinding() const
+{
+    return OnWriteSettingValue.IsBound();
+}

@@ -43,7 +43,6 @@ public:
 	//推送确认按钮到堆栈
 	void PushConfirmationToStack(
 		EConfirmationWindowsType InWindowsType,
-		const FText& InWindowDisplayText,
 		const FText& InWinodwMessageText,
 		TFunction<void(EConfirmationWindowsButtonType)>ButtonClickCallback
 		);
