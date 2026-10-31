@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "YCNUIDemo/Settings/YCNGameUserSettings.h"
 #include "YCNListData_RegisterData.generated.h"
 
 class UYCNListData_Base;
@@ -28,10 +29,6 @@ private:
 	//用户设置
 	TWeakObjectPtr<UYCNGameUserSettings>UserSettings;
 
-	//函数返回类型 (指向这个类的成员函数) (形参)
-	using FTextSettingGetter = const FText& (UYCNGameUserSettings::*)() const;
-	using FTextSettingSetter = void (UYCNGameUserSettings::*)(const FText&);
-
 public:
 	DECLARE_DELEGATE(FOnSettingsValueChanged)
 	FOnSettingsValueChanged OnSettingValueChanged;
@@ -51,7 +48,45 @@ private:
 	FText SetDataText(const FString& InDaraString);
 
 	//绑定值
-	void BindCachedValue(UYCNListData_Base* InData, FTextSettingGetter InGetter, FTextSettingSetter InSetter);
+	template<typename TData, typename TGetter, typename TSetter>
+	void BindCachedValue(TData* InData, TGetter InGetter, TSetter InSetter)
+	{
+		if (!IsValid(InData) || !InGetter || !InSetter || !UserSettings.IsValid())return;
+
+		using FBinding = typename TData::FSettingBinding;
+		using TValue = typename FBinding::TValueType;
+        using FReadDelegate = typename FBinding::FReadDelegate;
+        using FWriteDelegate = typename FBinding::FWriteDelegate;
+
+        InData->GetSettingBinding().Bind(
+            FReadDelegate::CreateLambda(
+                [this, InGetter](TValue& OutValue) -> bool
+                {
+                    UYCNGameUserSettings* Settings = UserSettings.Get();
+                    if (!Settings) return false;
+                    
+                    OutValue = (Settings->*InGetter)();
+                    return true;
+                }),
+            FWriteDelegate::CreateLambda(
+                [this, InSetter](const TValue& InValue) -> bool
+                {
+                    UYCNGameUserSettings* Settings = UserSettings.Get();
+                    if (!Settings) return false;
+
+                    (Settings->*InSetter)(InValue);
+                    Settings->SaveSettings();
+
+                    if (UYCNListData_RegisterData* Register = this)
+                    {
+                        Register->OnSettingValueChanged.ExecuteIfBound();
+                    }
+
+                    return true;
+                })
+        );
+
+	}
 
 public:
 	const TArray<UYCNListData_Tab*>& GetAvailableDataList() const { return AvailableDataList; }

@@ -13,7 +13,7 @@ class UYCNListData_RegisterData;
 class UYCNWidget_ButtonBase;
 class UYCNWidget_ListViewBase;
 class UBorder;
-class UYCNWidget_Entry_Value;
+class UYCNWidget_Entry_String;
 class UYCNWidget_DetailsBase;
 class UYCNListData_Tab;
 class UYCNListData_Base;
@@ -65,7 +65,7 @@ private:
 
 	//选择打开下拉菜单的条目
 	UPROPERTY(Transient)
-	TWeakObjectPtr<UYCNWidget_Entry_Value> SelectedDropdownEntry;
+	TWeakObjectPtr<UYCNWidget_Entry_String> SelectedDropdownEntry;
 
 	//唯一选择的条目
 	UPROPERTY(Transient)
@@ -94,7 +94,7 @@ private:
 	void SetDropdownBlockerVisible(bool bIsOpen);
 
 	//打开下拉菜单回调
-	void OnEntryDropdownOpenChanged(bool bIsOpen, UYCNWidget_Entry_Value* SourceEntry);
+	void OnEntryDropdownOpenChanged(bool bIsOpen, UYCNWidget_Entry_String* SourceEntry);
 
 	//小条目选择更新回调
 	void OnSubTabSelectionChanged(UObject* InSelectedItem);
@@ -105,6 +105,9 @@ private:
 	void AddResetAction(const FName& InTabID);
 
 	void OnSettingValueChanged();
+
+	//获取数据标签所有子数据
+	const TArray<UYCNListData_Base*> GetTabAllChildData(UYCNListData_Tab* InTab, const FName& InTabID);
 
 	UFUNCTION()
 	FEventReply OnDropdownBlockerMouseButtonDown(FGeometry MyGeometry, const FPointerEvent& MouseEvent);

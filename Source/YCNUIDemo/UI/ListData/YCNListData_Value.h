@@ -6,7 +6,7 @@
 #include "YCNUIDemo/UI/ListData/YCNListData_Base.h"
 #include "YCNListData_Value.generated.h"
 
-UCLASS(Transient)
+UCLASS(Abstract)
 class YCNUIDEMO_API UYCNListData_Value : public UYCNListData_Base
 {
 	GENERATED_BODY()
@@ -21,7 +21,6 @@ protected:
 public:
 	//重置为默认值
 	virtual bool ResetToDefault()const { return false; }
-
 
 protected:
 	//是否拥有默认值

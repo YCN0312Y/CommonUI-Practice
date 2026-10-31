@@ -4,6 +4,7 @@
 #include "YCNUIDemo/UI/ListData/YCNListData_Base.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Tab.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_String.h"
+#include "YCNUIDemo/UI/ListData/YCNListData_Float.h"
 #include "YCNUIDemo/Settings/YCNGameUserSettings.h"
 
 void UYCNListData_RegisterData::InitDataList()
@@ -55,7 +56,7 @@ void UYCNListData_RegisterData::InitGameSettingsList()
 				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("正常")));
 				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("困难")));
 				GameDifficulty->AddDataToOptionsList(SetDataText(TEXT("极难")));
-				GameDifficulty->SetOwningDefaultValue(SetDataText(TEXT("简单")));
+				GameDifficulty->SetOwningTextDefaultValue(SetDataText(TEXT("简单")));
 				const FString Easy = TEXT("简单：专注于剧情与探索，敌人较弱且资源充沛，容错率极高，适合新手或轻松体验。\n\n");
 				const FString Normal = TEXT("正常：制作组推荐的基准难度，攻防均衡，需要适度运用操作与策略，体验平滑充实。\n\n");
 				const FString Difficulty = TEXT("困难：敌人更具侵略性，失误代价更高，考验核心机制掌握与战术应变。\n\n");
@@ -86,6 +87,28 @@ void UYCNListData_RegisterData::InitAudioList()
 		AudioTab->SetDataDisplayText(SetDataText(TEXT("音频")));
 
 		AvailableDataList.Add(AudioTab);
+
+		//音量
+		{
+			UYCNListData_Tab* Volume = NewObject<UYCNListData_Tab>();
+			if (Volume)
+			{
+				Volume->SetDataID(FName("Volume"));
+				Volume->SetDataDisplayText(SetDataText(TEXT("音量")));
+
+				AudioTab->AddChildData(Volume);
+			}
+			//全局音量
+			UYCNListData_Float* GlobalVolume = NewObject<UYCNListData_Float>();
+			if (GlobalVolume)
+			{
+				GlobalVolume->SetDataID(FName("GlobalVolume"));
+				GlobalVolume->SetDataDisplayText(SetDataText(TEXT("全局音量")));
+				GlobalVolume->SetDataDescription(SetDataText(TEXT("全局音量的")));
+
+				Volume->AddChildData(GlobalVolume);
+			}
+		}
 	}
 }
 
@@ -128,39 +151,4 @@ void UYCNListData_RegisterData::InitAssistList()
 FText UYCNListData_RegisterData::SetDataText(const FString& InDaraString)
 {
 	return FText::FromString(InDaraString);
-}
-
-void UYCNListData_RegisterData::BindCachedValue(UYCNListData_Base* InData, FTextSettingGetter InGetter, FTextSettingSetter InSetter)
-{
-	if (!IsValid(InData) || !InGetter || !InSetter)return;
-
-	if(UserSettings.IsValid())
-	{
-		InData->SetSettingTextBinding(
-			FOnReadSettingValue::CreateLambda(
-				[this, InGetter]()->FText
-				{
-					if (UYCNGameUserSettings* Settings = UserSettings.Get())
-					{
-						return (Settings->*InGetter)();
-					}
-
-					return FText::GetEmpty();
-				}),
-			FOnWriteSettingValue::CreateLambda(
-				[this, InSetter](const FText& InValue)
-				{
-					if (UYCNGameUserSettings* Settings = UserSettings.Get())
-					{
-						(Settings->*InSetter)(InValue);
-
-						// 保存设置。
-						Settings->SaveSettings();
-
-						OnSettingValueChanged.Execute();
-					}
-
-				})
-		);
-	}
 }

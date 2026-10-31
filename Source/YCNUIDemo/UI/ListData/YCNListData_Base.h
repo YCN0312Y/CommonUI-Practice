@@ -12,12 +12,7 @@ Type Get##Value()const { return Value; }
 
 class UTexture2D;
 
-//设置当前缓存值
-DECLARE_DELEGATE_OneParam(FOnWriteSettingValue, const FText&);
-//获取当前缓存值
-DECLARE_DELEGATE_RetVal(FText, FOnReadSettingValue);
-
-UCLASS(Transient)
+UCLASS(Abstract)
 class YCNUIDEMO_API UYCNListData_Base : public UObject
 {
 	GENERATED_BODY()
@@ -43,10 +38,8 @@ private:
 	UPROPERTY(Transient)
 	TObjectPtr<UTexture2D>DataIcon;
 
-	//写
-	FOnWriteSettingValue OnWriteSettingValue;
-	//读
-	FOnReadSettingValue OnReadSettingValue;
+	UPROPERTY(Transient)
+	TArray<UYCNListData_Base*>ChildDataList;
 
 public:
 	//设置/获取器
@@ -56,14 +49,48 @@ public:
 	MAKE_SET_GET(TObjectPtr<UYCNListData_Base>, DataParent);
 	MAKE_SET_GET(TObjectPtr<UTexture2D>, DataIcon);
 
-public:
-	// Entry 通过这两个函数访问设置。
-	bool TryReadSettingText(FText& OutValue) const;
-	bool TryWriteSettingText(const FText& InValue) const;
+	//添加子类
+	void AddChildData(UYCNListData_Base* InChildData);
+	//根据子类数据ID获取数据
+	UYCNListData_Base* GetDataByChildDataID(const FName& InDataID);
+	//获取子类数据列表
+	TArray<UYCNListData_Base*>GetChildDataList()const { return ChildDataList; }
 
-	//检查写代理是否绑定了函数
-	bool HasWriteBinding()const;
+	template<typename TValue>
+	struct TYCNSettingBinding
+	{
+	public:
+		using TValueType = TValue;
+		//读取代理
+		using FReadDelegate = TDelegate<bool(TValue&)>;
+		//写入代理
+		using FWriteDelegate = TDelegate<bool(const TValue&)>;
 
-	//在注册数据时设置绑定。
-	void SetSettingTextBinding(FOnReadSettingValue InReadDelegate, FOnWriteSettingValue InWriteDelegate);
+	private:
+		FReadDelegate ReadDelegate;
+		FWriteDelegate WriteDelegate;
+
+	public:
+		void Bind(FReadDelegate InReadDelegate, FWriteDelegate InWriteDelegate)
+		{
+			ReadDelegate = MoveTemp(InReadDelegate);
+			WriteDelegate = MoveTemp(InWriteDelegate);
+		}
+
+		bool TryRead(TValue& OutValue) const
+		{
+			return ReadDelegate.IsBound() && ReadDelegate.Execute(OutValue);
+		}
+
+		bool TryWrite(const TValue& InValue) const
+		{
+			return WriteDelegate.IsBound() && WriteDelegate.Execute(InValue);
+		}
+
+		bool HasWriteBinding() const
+		{
+			return WriteDelegate.IsBound();
+		}
+	};
+
 };

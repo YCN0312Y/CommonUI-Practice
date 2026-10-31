@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "CommonUserWidget.h"
 #include "YCNUIDemo/UI/Widgets/Options/EntryWidget/YCNWidget_EntryBase.h"
-#include "YCNWidget_Entry_Value.generated.h"
+#include "YCNWidget_Entry_String.generated.h"
 
 class UYCNWidget_ButtonBase;
 class UCommonTextBlock;
@@ -14,7 +14,7 @@ class UYCNWidget_DropdownOption;
 class UMenuAnchor;
 
 UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
-class YCNUIDEMO_API UYCNWidget_Entry_Value : public UYCNWidget_EntryBase
+class YCNUIDEMO_API UYCNWidget_Entry_String : public UYCNWidget_EntryBase
 {
 	GENERATED_BODY()
 	

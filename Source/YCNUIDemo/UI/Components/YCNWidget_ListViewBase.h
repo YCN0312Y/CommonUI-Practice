@@ -17,6 +17,9 @@ public:
 	//在需要为数据项生成显示行时自动调用
 	virtual TSubclassOf<UUserWidget> GetDesiredEntryClassForItem(UObject* Item) const override;
 
+protected:
+	virtual bool OnIsSelectableOrNavigableInternal(UObject* FirstSelectedItem)override;
+
 private:
 	UPROPERTY(EditAnywhere, Category = "YCN Option Widget")
 	TObjectPtr<UYCNWidgetDataAsset> WidgetDataAsset;

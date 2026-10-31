@@ -2,36 +2,22 @@
 
 #include "YCNUIDemo/UI/ListData/YCNListData_Base.h"
 
-void UYCNListData_Base::SetSettingTextBinding(FOnReadSettingValue InReadDelegate, FOnWriteSettingValue InWriteDelegate)
+void UYCNListData_Base::AddChildData(UYCNListData_Base* InChildData)
 {
-    //将参数绑定的委托给成员代理
-	OnReadSettingValue = MoveTemp(InReadDelegate);
-	OnWriteSettingValue = MoveTemp(InWriteDelegate);
+	if (!IsValid(InChildData)) return;
+
+	InChildData->SetDataParent(this);
+	ChildDataList.Add(InChildData);
 }
 
-bool UYCNListData_Base::TryReadSettingText(FText& OutValue) const
+UYCNListData_Base* UYCNListData_Base::GetDataByChildDataID(const FName& InDataID)
 {
-    if (OnReadSettingValue.IsBound())
-    {
-        //将代理获取来的值复制给传进来的变量
-        OutValue = OnReadSettingValue.Execute();
-        return true;
-    }
-
-    return false;
-}
-
-bool UYCNListData_Base::TryWriteSettingText(const FText& InValue) const
-{
-    if (OnWriteSettingValue.IsBound())
-    {
-        OnWriteSettingValue.Execute(InValue);
-        return true;
-    }
-	return false;
-}
-
-bool UYCNListData_Base::HasWriteBinding() const
-{
-    return OnWriteSettingValue.IsBound();
+	for (const TObjectPtr<UYCNListData_Base>& Data : ChildDataList)
+	{
+		if (Data && Data->GetDataID() == InDataID)
+		{
+			return Data.Get();
+		}
+	}
+	return nullptr;
 }

@@ -4,6 +4,7 @@
 #include "YCNUIDemo/UI/Widgets/Options/EntryWidget/YCNWidget_EntryBase.h"
 #include "YCNUIDemo/DataAsset/YCNWidgetDataAsset.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Base.h"
+#include "YCNUIDemo/UI/ListData/YCNListData_Tab.h"
 
 TSubclassOf<UUserWidget> UYCNWidget_ListViewBase::GetDesiredEntryClassForItem(UObject* Item) const
 {
@@ -23,4 +24,9 @@ TSubclassOf<UUserWidget> UYCNWidget_ListViewBase::GetDesiredEntryClassForItem(UO
     }
 
     return Super::GetDesiredEntryClassForItem(Item);
+}
+
+bool UYCNWidget_ListViewBase::OnIsSelectableOrNavigableInternal(UObject* FirstSelectedItem)
+{
+    return !FirstSelectedItem->IsA<UYCNListData_Tab>();
 }

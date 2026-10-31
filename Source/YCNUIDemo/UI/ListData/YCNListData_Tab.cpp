@@ -2,22 +2,4 @@
 
 #include "YCNUIDemo/UI/ListData/YCNListData_Tab.h"
 
-void UYCNListData_Tab::AddChildData(UYCNListData_Base* InChildData)
-{
-	if (!IsValid(InChildData)) return;
-	
-	InChildData->SetDataParent(this);
-	ChildDataList.Add(InChildData);
-}
 
-UYCNListData_Base* UYCNListData_Tab::GetDataByChildDataID(const FName& InDataID)
-{
-	for (const TObjectPtr<UYCNListData_Base>& Data : ChildDataList)
-	{
-		if (Data && Data->GetDataID() == InDataID)
-		{
-			return Data.Get();
-		}
-	}
-	return nullptr;
-}

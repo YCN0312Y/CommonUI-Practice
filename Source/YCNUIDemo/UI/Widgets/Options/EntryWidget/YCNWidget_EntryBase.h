@@ -60,7 +60,7 @@ protected:
 
 private:
 	//高亮
-	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
+	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidgetOptional, AllowPrivateAccess = "true"))
 	TObjectPtr<UBorder>Border_HighLight;
 	//显示文本
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))

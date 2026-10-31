@@ -10,7 +10,7 @@
 #include "YCNUIDemo/UI/Components/YCNWidget_ButtonBase.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_TabListBase.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_ListViewBase.h"
-#include "YCNUIDemo/UI/Widgets/Options/EntryWidget/YCNWidget_Entry_Value.h"
+#include "YCNUIDemo/UI/Widgets/Options/EntryWidget/YCNWidget_Entry_String.h"
 #include "YCNUIDemo/Subsystems/YCNWidgetManagerSubsystem.h"
 #include "Input/CommonUIInputTypes.h"
 #include "ICommonInputModule.h"
@@ -178,7 +178,7 @@ void UYCNWidget_Options::OnTabSelected(FName TabID)
 		return;
 	}
 
-	ListView_SubTab->SetListItems(SelectedTab->GetChildDataList());
+	ListView_SubTab->SetListItems(GetTabAllChildData(SelectedTab, TabID));
 
 	if (IsValid(SelectedTab))
 	{
@@ -213,7 +213,7 @@ UYCNListData_RegisterData* UYCNWidget_Options::InitOwningRegisterData()
 
 void UYCNWidget_Options::OnListEntryGenerated(UUserWidget& EntryWidget)
 {
-	UYCNWidget_Entry_Value* ValueEntry = Cast<UYCNWidget_Entry_Value>(&EntryWidget);
+	UYCNWidget_Entry_String* ValueEntry = Cast<UYCNWidget_Entry_String>(&EntryWidget);
 	if (IsValid(ValueEntry))
 	{
 		ValueEntry->OnDropdownOpenChanged.BindUObject(this, &UYCNWidget_Options::OnEntryDropdownOpenChanged, ValueEntry);
@@ -228,7 +228,7 @@ void UYCNWidget_Options::SetDropdownBlockerVisible(bool bIsOpen)
 	}
 }
 
-void UYCNWidget_Options::OnEntryDropdownOpenChanged(bool bIsOpen, UYCNWidget_Entry_Value* SourceEntry)
+void UYCNWidget_Options::OnEntryDropdownOpenChanged(bool bIsOpen, UYCNWidget_Entry_String* SourceEntry)
 {
 	if (!IsValid(Border_DropdownBlocker))return;
 
@@ -303,9 +303,9 @@ void UYCNWidget_Options::AddResetAction(const FName& InTabID)
 		if (!ValueData)continue;
 
 		FText CurrentText;
-		if (!ValueData->TryReadSettingText(CurrentText))continue;
+		if (!ValueData->GetSettingBinding().TryRead(CurrentText))continue;
 
-		const FText& DefaultValue = ValueData->GetOwningDefaultValue();
+		const FText& DefaultValue = ValueData->GetOwningTextDefaultValue();
 		if (CurrentText.IsEmpty())
 		{
 			CurrentText = DefaultValue;
@@ -345,11 +345,45 @@ void UYCNWidget_Options::OnSettingValueChanged()
 	// 更新当前已经显示出来的文本 Entry。
 	for (UUserWidget* EntryWidget : ListView_SubTab->GetDisplayedEntryWidgets())
 	{
-		if (UYCNWidget_Entry_Value* ValueEntry = Cast<UYCNWidget_Entry_Value>(EntryWidget))
+		if (UYCNWidget_Entry_String* ValueEntry = Cast<UYCNWidget_Entry_String>(EntryWidget))
 		{
 			ValueEntry->RefreshSelectedText();
 		}
 	}
+}
+
+const TArray<UYCNListData_Base*> UYCNWidget_Options::GetTabAllChildData(UYCNListData_Tab* InTab, const FName& InTabID)
+{
+	TArray<UYCNListData_Base*> Result;
+
+	if (!IsValid(OwningRegisterData) || InTabID.IsNone()) return Result;
+
+	//当前选择的标签
+	InTab = OwningRegisterData->GetDataByDataID(InTabID);
+
+	if (!IsValid(InTab)) return Result;
+	
+	//收集一个节点的所有子节点。
+	TFunction<void(UYCNListData_Base*)> CollectChildren;
+
+	CollectChildren =
+		[&Result, &CollectChildren](UYCNListData_Base* Parent)
+		{
+			if (!IsValid(Parent)) return;
+			
+			for (UYCNListData_Base* Child : Parent->GetChildDataList())
+			{
+				if (!IsValid(Child)) continue;
+				
+				Result.Add(Child);
+
+				CollectChildren(Child);
+			}
+		};
+
+	CollectChildren(InTab);
+
+	return Result;
 }
 
 FEventReply UYCNWidget_Options::OnDropdownBlockerMouseButtonDown(FGeometry MyGeometry, const FPointerEvent& MouseEvent)
