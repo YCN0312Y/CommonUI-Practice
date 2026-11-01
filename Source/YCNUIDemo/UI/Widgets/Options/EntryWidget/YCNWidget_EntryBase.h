@@ -38,26 +38,29 @@ protected:
 	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)override;
 
 	//切换条目状态
-	UFUNCTION(BlueprintCallable, Category = "YCN Widget")
 	virtual void SwitchItemStatus(bool bIsSwitch);
 
+	//设置条目显示文本
 	void SetEnrtyDisplayText(const FText& InDisplayText);
+
+public:
+	//选项条目数据
+	virtual void RefreshEntryData() { }
 
 protected:
 	//音效
 	UPROPERTY(EditDefaultsOnly, Category = "YCN Widget|Sound")
 	TObjectPtr<USoundBase> HoverSound;
 	//字样式默认
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "YCN Widget|Text Style")
+	UPROPERTY(EditDefaultsOnly, Category = "YCN Widget|Style")
 	TSubclassOf<UCommonTextStyle>TextStyle_Default;
 	//字样式选择
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "YCN Widget|Text Style")
+	UPROPERTY(EditDefaultsOnly, Category = "YCN Widget|Style")
 	TSubclassOf<UCommonTextStyle>TextStyle_Selected;
 
 	//用户设置
 	UPROPERTY(Transient)
 	TWeakObjectPtr<UYCNGameUserSettings>UserSettings;
-
 private:
 	//高亮
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidgetOptional, AllowPrivateAccess = "true"))
@@ -65,6 +68,4 @@ private:
 	//显示文本
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<UCommonTextBlock>CommonText_DisplayText;
-
-
 };

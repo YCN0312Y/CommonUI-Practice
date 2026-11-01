@@ -31,6 +31,10 @@ protected:
 
 	virtual void NativeOnEntryReleased() override;
 
+public:
+	// 从当前设置重新读取并显示选择文本。
+	virtual void RefreshEntryData()override;
+
 private:
 	/*
 	* BindWidget--------------------
@@ -83,7 +87,4 @@ private:
 public:
 	//关闭下拉菜单
 	void CloseDropdownMenu(bool bIsFocusThis = true);
-
-	// 从当前设置重新读取并显示选择文本。
-	void RefreshSelectedText();
 };

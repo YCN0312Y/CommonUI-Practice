@@ -35,8 +35,7 @@ void UYCNWidget_Entry_String::NativeOnListItemObjectSet(UObject* ListItemObject)
 
     if (!IsValid(CommonText_SelectedText)) return;
     
-    RefreshSelectedText();
-
+    RefreshEntryData();
 }
 
 FReply UYCNWidget_Entry_String::NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent)
@@ -68,6 +67,28 @@ void UYCNWidget_Entry_String::NativeOnEntryReleased()
     OnDropdownOpenChanged.Unbind();
 
     Super::NativeOnEntryReleased();
+}
+
+void UYCNWidget_Entry_String::RefreshEntryData()
+{
+    if (!IsValid(CommonText_SelectedText) || !IsValid(OwningValueData)) return;
+
+    CommonText_SelectedText->SetText(FText::GetEmpty());
+
+    if (OwningValueData->GetOptionList().IsEmpty())
+    {
+        CommonText_SelectedText->SetText(FText::FromString(TEXT("无效的选项")));
+        return;
+    }
+
+    FText CurrentValue;
+
+    if (!OwningValueData->GetSettingBinding().TryRead(CurrentValue) || CurrentValue.IsEmpty())
+    {
+        CurrentValue = OwningValueData->GetSettingBinding().GetOwningDefaultValue();
+    }
+
+    CommonText_SelectedText->SetText(CurrentValue);
 }
 
 void UYCNWidget_Entry_String::OnClicked_DropdownButton()
@@ -146,26 +167,4 @@ void UYCNWidget_Entry_String::CloseDropdownMenu(bool bIsFocusThis)
             }
         }
 	}
-}
-
-void UYCNWidget_Entry_String::RefreshSelectedText()
-{
-    if (!IsValid(CommonText_SelectedText) || !IsValid(OwningValueData)) return;
-    
-    CommonText_SelectedText->SetText(FText::GetEmpty());
-
-    if (OwningValueData->GetOptionList().IsEmpty())
-    {
-        CommonText_SelectedText->SetText(FText::FromString(TEXT("无效的选项")));
-        return;
-    }
-
-    FText CurrentValue;
-
-    if (!OwningValueData->GetSettingBinding().TryRead(CurrentValue) || CurrentValue.IsEmpty())
-    {
-        CurrentValue = OwningValueData->GetOwningTextDefaultValue();
-    }
-
-    CommonText_SelectedText->SetText(CurrentValue);
 }

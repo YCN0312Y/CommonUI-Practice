@@ -80,7 +80,6 @@ private:
 	UFUNCTION()
 	void OnTabSelected(FName TabID);
 
-
 	UFUNCTION()
 	void OnTabSelected_Tab(FName TabId);
 

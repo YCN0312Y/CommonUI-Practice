@@ -12,7 +12,21 @@ class YCNUIDEMO_API UYCNListData_String : public UYCNListData_Value
 	GENERATED_BODY()
 
 public:
-	using FSettingBinding = TYCNSettingBinding<FText>;
+	struct FSettingBinding : TYCNSettingBinding<FText>
+	{
+
+	public:
+		//能否重置为默认值
+		virtual bool CanResetToDefault()const override
+		{
+			FText CurrentValue;
+
+			return HasDefaultValue()
+				&& HasWriteBinding()
+				&& TryRead(CurrentValue)
+				&& !CurrentValue.EqualTo(GetOwningDefaultValue());
+		}
+	};
 
 	//可写对象
 	FSettingBinding& GetSettingBinding()
@@ -33,26 +47,15 @@ private:
 	UPROPERTY(Transient)
 	TArray<FText>OptionList;
 
-	//默认值
-	UPROPERTY(Transient)
-	FText OwningTextDefaultValue;
-
-protected:
-	//是否可以重置为默认值
+public:
+	//能否重置为默认值
 	virtual bool CanResetToDefault()const override;
 
-public:
 	//重置为默认值
 	virtual bool ResetToDefault()const override;
 
 	//添加数据到选项列表
 	void AddDataToOptionsList(const FText& InOptionText);
-
-	//设置数据默认值
-	void SetOwningTextDefaultValue(const FText& InDefaultValue);
-
-	//获取数据默认值
-	const FText& GetOwningTextDefaultValue()const;
 
 	//获取选项列表
 	const TArray<FText>& GetOptionList()const { return OptionList; }

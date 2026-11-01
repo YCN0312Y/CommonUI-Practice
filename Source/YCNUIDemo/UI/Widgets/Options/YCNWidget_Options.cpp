@@ -145,15 +145,23 @@ void UYCNWidget_Options::OnClicked_Reset()
 			UYCNListData_Tab* TabToReset = WeakTab.Get();
 			if (!IsValid(TabToReset)) return;
 			
-			for (UYCNListData_Base* Data : TabToReset->GetChildDataList())
-			{
-				UYCNListData_Value* ResetData = Cast<UYCNListData_Value>(Data);
+			TFunction<void(UYCNListData_Base*)> ResetNode;
 
-				if (IsValid(ResetData))
+			ResetNode = [&ResetNode](UYCNListData_Base* Data)
 				{
-					ResetData->ResetToDefault();
-				}
-			}
+					if (!IsValid(Data)) return;
+					
+					if (UYCNListData_Value* ValueData = Cast<UYCNListData_Value>(Data))
+					{
+						ValueData->ResetToDefault();
+					}
+
+					for (UYCNListData_Base* ChildData : Data->GetChildDataList())
+					{
+						ResetNode(ChildData);
+					}
+				};
+			ResetNode(TabToReset);
 		});
 }
 
@@ -290,31 +298,29 @@ void UYCNWidget_Options::UpdateDetails(UYCNListData_Tab* InData)
 
 void UYCNWidget_Options::AddResetAction(const FName& InTabID)
 {
-	if (!ResetActionHandle.IsValid() || !IsValid(OwningRegisterData) || InTabID.IsNone())return;
+	if (!ResetActionHandle.IsValid())return;
 
 	bool bShouldShowReset = false;
 
-	UYCNListData_Tab* SelctedTab = OwningRegisterData->GetDataByDataID(InTabID);
-	if (!SelctedTab)return;
-
-	for (UYCNListData_Base* ChildData : SelctedTab->GetChildDataList())
+	if (IsValid(OwningRegisterData) && !InTabID.IsNone())
 	{
-		UYCNListData_String* ValueData = Cast<UYCNListData_String>(ChildData);
-		if (!ValueData)continue;
+		UYCNListData_Tab* SelectedTab = OwningRegisterData->GetDataByDataID(InTabID);
 
-		FText CurrentText;
-		if (!ValueData->GetSettingBinding().TryRead(CurrentText))continue;
-
-		const FText& DefaultValue = ValueData->GetOwningTextDefaultValue();
-		if (CurrentText.IsEmpty())
+		if (IsValid(SelectedTab))
 		{
-			CurrentText = DefaultValue;
-		}
+			// 包含分组下面的所有子数据。
+			const TArray<UYCNListData_Base*> AllChildData = GetTabAllChildData(SelectedTab, InTabID);
 
-		if (!CurrentText.EqualTo(DefaultValue))
-		{
-			bShouldShowReset = true;
-			break;
+			for (UYCNListData_Base* ChildData : AllChildData)
+			{
+				const UYCNListData_Value* ValueData = Cast<UYCNListData_Value>(ChildData);
+
+				if (IsValid(ValueData) && ValueData->CanResetToDefault())
+				{
+					bShouldShowReset = true;
+					break;
+				}
+			}
 		}
 	}
 
@@ -345,9 +351,9 @@ void UYCNWidget_Options::OnSettingValueChanged()
 	// 更新当前已经显示出来的文本 Entry。
 	for (UUserWidget* EntryWidget : ListView_SubTab->GetDisplayedEntryWidgets())
 	{
-		if (UYCNWidget_Entry_String* ValueEntry = Cast<UYCNWidget_Entry_String>(EntryWidget))
+		if (UYCNWidget_EntryBase* ValueEntry = Cast<UYCNWidget_EntryBase>(EntryWidget))
 		{
-			ValueEntry->RefreshSelectedText();
+			ValueEntry->RefreshEntryData();
 		}
 	}
 }

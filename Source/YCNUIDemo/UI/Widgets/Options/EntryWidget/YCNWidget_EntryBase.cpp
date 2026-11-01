@@ -67,11 +67,6 @@ void UYCNWidget_EntryBase::NativeOnMouseEnter(const FGeometry& InGeometry, const
 		}
 	}
 
-	if (APlayerController* PlayerController = GetOwningPlayer())
-	{
-		//SetUserFocus(PlayerController);
-	}
-
 	if (HoverSound)
 	{
 		UGameplayStatics::PlaySound2D(this, HoverSound);
