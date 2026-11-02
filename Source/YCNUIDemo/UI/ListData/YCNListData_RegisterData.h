@@ -26,6 +26,7 @@ private:
 	UPROPERTY(Transient)
 	TArray<UYCNListData_Tab*> AvailableDataList;
 
+public:
 	//用户设置
 	TWeakObjectPtr<UYCNGameUserSettings>UserSettings;
 
@@ -46,6 +47,9 @@ private:
 
 	//设置数据字符串
 	FText SetDataText(const FString& InDaraString);
+
+	//获取最大分辨率值
+	FText GetMaxResolutionText();
 
 	//绑定值
 	template<typename TData, typename TGetter, typename TSetter>

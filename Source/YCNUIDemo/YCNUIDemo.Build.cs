@@ -20,6 +20,7 @@ public class YCNUIDemo : ModuleRules
             "CommonUI",
             "CommonInput",
             "GameplayTags",
+            "ApplicationCore"
         });
     }
 }
