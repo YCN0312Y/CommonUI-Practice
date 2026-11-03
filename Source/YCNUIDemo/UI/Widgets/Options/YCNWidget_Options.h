@@ -13,7 +13,7 @@ class UYCNListData_RegisterData;
 class UYCNWidget_ButtonBase;
 class UYCNWidget_ListViewBase;
 class UBorder;
-class UYCNWidget_Entry_String;
+class UYCNWidget_Entry_StringOption;
 class UYCNWidget_DetailsBase;
 class UYCNListData_Tab;
 class UYCNListData_Base;
@@ -65,7 +65,7 @@ private:
 
 	//选择打开下拉菜单的条目
 	UPROPERTY(Transient)
-	TWeakObjectPtr<UYCNWidget_Entry_String> SelectedDropdownEntry;
+	TWeakObjectPtr<UYCNWidget_Entry_StringOption> SelectedDropdownEntry;
 
 	//唯一选择的条目
 	UPROPERTY(Transient)
@@ -93,7 +93,7 @@ private:
 	void SetDropdownBlockerVisible(bool bIsOpen);
 
 	//打开下拉菜单回调
-	void OnEntryDropdownOpenChanged(bool bIsOpen, UYCNWidget_Entry_String* SourceEntry);
+	void OnEntryDropdownOpenChanged(bool bIsOpen, UYCNWidget_Entry_StringOption* SourceEntry);
 
 	//小条目选择更新回调
 	void OnSubTabSelectionChanged(UObject* InSelectedItem);

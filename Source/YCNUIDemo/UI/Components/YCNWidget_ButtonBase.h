@@ -29,10 +29,10 @@ public:
 
 	//图标默认颜色
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "YCN Button")
-	FSlateColor IncoDefaultColor = FSlateColor(FColor::White);
+	FSlateColor IconDefaultColor = FSlateColor(FColor::White);
 	//图标选中颜色
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "YCN Button")
-	FSlateColor IncoSelectedColor = FSlateColor(FColor::Black);
+	FSlateColor IconSelectedColor = FSlateColor(FColor::Black);
 private:
 	//按钮显示文本
 	UPROPERTY(EditAnywhere, Category = "YCN Button")

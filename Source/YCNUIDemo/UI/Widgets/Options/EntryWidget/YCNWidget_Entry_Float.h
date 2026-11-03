@@ -30,6 +30,8 @@ public:
 	//刷新条目数据
 	virtual void RefreshEntryData()override;
 
+	virtual bool IsValueModified() const override;
+
 private:
 	//当前音量
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))

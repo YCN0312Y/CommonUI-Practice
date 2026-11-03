@@ -1,6 +1,6 @@
 ﻿// Fill out your copyright notice in the Description page of Project Settings.
 
-#include "YCNUIDemo/UI/Widgets/Options/EntryWidget/YCNWidget_Entry_String.h"
+#include "YCNUIDemo/UI/Widgets/Options/EntryWidget/YCNWidget_Entry_StringOption.h"
 #include "YCNUIDemo/UI/Widgets/Options/YCNWidget_DropdownOption.h"
 #include "YCNUIDemo/Subsystems/YCNWidgetManagerSubsystem.h"
 #include "YCNUIDemo/FunctionLibrary/YCNFunctionLibrary.h"
@@ -11,23 +11,23 @@
 #include "CommonTextBlock.h"
 #include "Components/MenuAnchor.h"
 
-void UYCNWidget_Entry_String::NativeOnInitialized()
+void UYCNWidget_Entry_StringOption::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
 
 	if (CommonButton_DropdownButton)
 	{
-		CommonButton_DropdownButton->OnClicked().AddUObject(this, &UYCNWidget_Entry_String::OnClicked_DropdownButton);
+		CommonButton_DropdownButton->OnClicked().AddUObject(this, &UYCNWidget_Entry_StringOption::OnClicked_DropdownButton);
 	}
 
     if (MenuAnchor_Option)
     {
-        MenuAnchor_Option->OnGetUserMenuContentEvent.BindDynamic(this, &UYCNWidget_Entry_String::CreateOptionMenuContent);
-        MenuAnchor_Option->OnMenuOpenChanged.AddDynamic(this, &UYCNWidget_Entry_String::OnOpen_MenuAnchorOption);
+        MenuAnchor_Option->OnGetUserMenuContentEvent.BindDynamic(this, &UYCNWidget_Entry_StringOption::CreateOptionMenuContent);
+        MenuAnchor_Option->OnMenuOpenChanged.AddDynamic(this, &UYCNWidget_Entry_StringOption::OnOpen_MenuAnchorOption);
     }
 }
 
-void UYCNWidget_Entry_String::NativeOnListItemObjectSet(UObject* ListItemObject)
+void UYCNWidget_Entry_StringOption::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
 	Super::NativeOnListItemObjectSet(ListItemObject);
 
@@ -38,12 +38,12 @@ void UYCNWidget_Entry_String::NativeOnListItemObjectSet(UObject* ListItemObject)
     RefreshEntryData();
 }
 
-FReply UYCNWidget_Entry_String::NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent)
+FReply UYCNWidget_Entry_StringOption::NativeOnFocusReceived(const FGeometry& InGeometry, const FFocusEvent& InFocusEvent)
 {
     return Super::NativeOnFocusReceived(InGeometry, InFocusEvent);
 }
 
-void UYCNWidget_Entry_String::SwitchItemStatus(bool bIsSwitch)
+void UYCNWidget_Entry_StringOption::SwitchItemStatus(bool bIsSwitch)
 {
     Super::SwitchItemStatus(bIsSwitch);
 
@@ -52,16 +52,16 @@ void UYCNWidget_Entry_String::SwitchItemStatus(bool bIsSwitch)
     if (bIsSwitch)
     {
         CommonText_SelectedText->SetStyle(TextStyle_Selected);
-        CommonButton_DropdownButton->SetButtonIconColor(CommonButton_DropdownButton->IncoSelectedColor);
+        CommonButton_DropdownButton->SetButtonIconColor(CommonButton_DropdownButton->IconSelectedColor);
     }
     else
     {
         CommonText_SelectedText->SetStyle(TextStyle_Default);
-        CommonButton_DropdownButton->SetButtonIconColor(CommonButton_DropdownButton->IncoDefaultColor);
+        CommonButton_DropdownButton->SetButtonIconColor(CommonButton_DropdownButton->IconDefaultColor);
     }
 }
 
-void UYCNWidget_Entry_String::NativeOnEntryReleased()
+void UYCNWidget_Entry_StringOption::NativeOnEntryReleased()
 {
     CloseDropdownMenu(false);
     OnDropdownOpenChanged.Unbind();
@@ -69,8 +69,14 @@ void UYCNWidget_Entry_String::NativeOnEntryReleased()
     Super::NativeOnEntryReleased();
 }
 
-void UYCNWidget_Entry_String::RefreshEntryData()
+bool UYCNWidget_Entry_StringOption::IsValueModified() const
 {
+    return IsValid(OwningValueData) && OwningValueData->CanResetToDefault();
+}
+
+void UYCNWidget_Entry_StringOption::RefreshEntryData()
+{
+    UpdatePointStatus();
     if (!IsValid(CommonText_SelectedText) || !IsValid(OwningValueData)) return;
 
     CommonText_SelectedText->SetText(FText::GetEmpty());
@@ -91,7 +97,7 @@ void UYCNWidget_Entry_String::RefreshEntryData()
     CommonText_SelectedText->SetText(CurrentValue);
 }
 
-void UYCNWidget_Entry_String::OnClicked_DropdownButton()
+void UYCNWidget_Entry_StringOption::OnClicked_DropdownButton()
 {
     if (!MenuAnchor_Option || MenuAnchor_Option->IsOpen() || OwningValueData->GetOptionList().IsEmpty()) return;
     
@@ -103,7 +109,7 @@ void UYCNWidget_Entry_String::OnClicked_DropdownButton()
     }
 }
 
-UUserWidget* UYCNWidget_Entry_String::CreateOptionMenuContent()
+UUserWidget* UYCNWidget_Entry_StringOption::CreateOptionMenuContent()
 {
     if (!IsValid(MenuAnchor_Option) || !IsValid(OwningValueData)) return nullptr;
     
@@ -116,14 +122,14 @@ UUserWidget* UYCNWidget_Entry_String::CreateOptionMenuContent()
     if (MenuWidget)
     {
         CurrentDropdownMenu = MenuWidget;
-        MenuWidget->OnUpdateSelectedText.AddUObject(this, &UYCNWidget_Entry_String::OnClick_ListCreatedButton);
+        MenuWidget->OnUpdateSelectedText.AddUObject(this, &UYCNWidget_Entry_StringOption::OnClick_ListCreatedButton);
         MenuWidget->SetOptionListData(OwningValueData);
     }
 
     return MenuWidget;
 }
 
-void UYCNWidget_Entry_String::OnOpen_MenuAnchorOption(bool bIsOpen)
+void UYCNWidget_Entry_StringOption::OnOpen_MenuAnchorOption(bool bIsOpen)
 {
     if (!bIsOpen)
     {
@@ -133,25 +139,32 @@ void UYCNWidget_Entry_String::OnOpen_MenuAnchorOption(bool bIsOpen)
     OnDropdownOpenChanged.ExecuteIfBound(bIsOpen);
 }
 
-void UYCNWidget_Entry_String::OnClick_ListCreatedButton(FText InSelectedText)
+void UYCNWidget_Entry_StringOption::OnClick_ListCreatedButton(FText InSelectedText)
 {
     if (!CommonText_SelectedText)return;
-    CommonText_SelectedText->SetText(InSelectedText);
 
-    if (!IsValid(OwningValueData)) return;
-    
+    if (!IsValid(OwningValueData))
+    {
+        CommonText_SelectedText->SetText(InSelectedText);
+        return;
+    }
+
     CloseDropdownMenu();
 
     const bool bHasWriteBinding = OwningValueData->GetSettingBinding().TryWrite(InSelectedText);
 
-    if (bHasWriteBinding && IsValid(CommonText_SelectedText))
+    if (bHasWriteBinding)
+    {
+        //写入后以实际读回的值为准：写入被拒绝（例如分辨率不在支持列表）时界面会回滚，而不是显示成已生效
+        RefreshEntryData();
+    }
+    else
     {
         CommonText_SelectedText->SetText(InSelectedText);
     }
-
 }
 
-void UYCNWidget_Entry_String::CloseDropdownMenu(bool bIsFocusThis)
+void UYCNWidget_Entry_StringOption::CloseDropdownMenu(bool bIsFocusThis)
 {
 	if (!IsValid(MenuAnchor_Option))return;
 

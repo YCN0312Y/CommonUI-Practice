@@ -40,6 +40,12 @@ protected:
 	//切换条目状态
 	virtual void SwitchItemStatus(bool bIsSwitch);
 
+	//当前值是否已偏离默认值，由具体条目子类根据持有的数据判断
+	virtual bool IsValueModified() const { return false; }
+
+	//按当前数据刷新“已修改”标记点
+	void UpdatePointStatus();
+
 	//设置条目显示文本
 	void SetEnrtyDisplayText(const FText& InDisplayText);
 
@@ -51,9 +57,11 @@ protected:
 	//音效
 	UPROPERTY(EditDefaultsOnly, Category = "YCN Widget|Sound")
 	TObjectPtr<USoundBase> HoverSound;
+
 	//字样式默认
 	UPROPERTY(EditDefaultsOnly, Category = "YCN Widget|Style")
 	TSubclassOf<UCommonTextStyle>TextStyle_Default;
+
 	//字样式选择
 	UPROPERTY(EditDefaultsOnly, Category = "YCN Widget|Style")
 	TSubclassOf<UCommonTextStyle>TextStyle_Selected;
@@ -65,7 +73,13 @@ private:
 	//高亮
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidgetOptional, AllowPrivateAccess = "true"))
 	TObjectPtr<UBorder>Border_HighLight;
+
 	//显示文本
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<UCommonTextBlock>CommonText_DisplayText;
+
+public:
+	//点
+	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidgetOptional, AllowPrivateAccess = "true"))
+	TObjectPtr<UBorder>Border_Point;
 };

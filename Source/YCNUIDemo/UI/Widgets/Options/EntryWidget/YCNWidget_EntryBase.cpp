@@ -74,6 +74,13 @@ void UYCNWidget_EntryBase::NativeOnMouseEnter(const FGeometry& InGeometry, const
 
 }
 
+void UYCNWidget_EntryBase::UpdatePointStatus()
+{
+	if (!IsValid(Border_Point)) return;
+
+	Border_Point->SetVisibility(IsValueModified() ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
+}
+
 void UYCNWidget_EntryBase::SetEnrtyDisplayText(const FText& InDisplayText)
 {
 	CommonText_DisplayText->SetText(InDisplayText);
@@ -81,8 +88,12 @@ void UYCNWidget_EntryBase::SetEnrtyDisplayText(const FText& InDisplayText)
 
 void UYCNWidget_EntryBase::SwitchItemStatus(bool bIsSwitch)
 {
-	if (!Border_HighLight || !CommonText_DisplayText)return;
+	if (!IsValid(Border_Point) || !IsValid(Border_HighLight) || !IsValid(CommonText_DisplayText))return;
 
+	if (IsValid(Border_Point))
+	{
+		Border_Point->SetBrushColor(bIsSwitch ? FLinearColor(FColor::Black) : FLinearColor(FColor::White));
+	}
 	if (bIsSwitch)
 	{
 		Border_HighLight->SetVisibility(ESlateVisibility::SelfHitTestInvisible);

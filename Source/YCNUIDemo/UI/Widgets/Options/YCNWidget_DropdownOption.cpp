@@ -17,7 +17,7 @@ void UYCNWidget_DropdownOption::SetOptionListData(UYCNListData_String* InData)
 
 void UYCNWidget_DropdownOption::AddDataToOptionList()
 {
-	if (!IsValid(ScrollBox_OptionList) || !OptionButton || !IsValid(OptionListData)) return;
+	if (!IsValid(ScrollBox_OptionList) || !OptionButton || !IsValid(OptionListData) || !IsValid(AvailableButtonStyle)) return;
 	
 	ScrollBox_OptionList->ClearChildren();
 
@@ -29,6 +29,7 @@ void UYCNWidget_DropdownOption::AddDataToOptionList()
 			if (CreatedButton)
 			{
 				CreatedButton->SetButtonDisplayText(FoundOptionData);
+				CreatedButton->SetStyle(AvailableButtonStyle);
 				CreatedButton->OnClicked().AddUObject(this, &UYCNWidget_DropdownOption::OnClick_CreatedButton, FoundOptionData);
 				ScrollBox_OptionList->AddChild(CreatedButton);
 			}

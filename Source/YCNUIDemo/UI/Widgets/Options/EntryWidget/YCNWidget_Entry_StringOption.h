@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "CommonUserWidget.h"
 #include "YCNUIDemo/UI/Widgets/Options/EntryWidget/YCNWidget_EntryBase.h"
-#include "YCNWidget_Entry_String.generated.h"
+#include "YCNWidget_Entry_StringOption.generated.h"
 
 class UYCNWidget_ButtonBase;
 class UCommonTextBlock;
@@ -14,7 +14,7 @@ class UYCNWidget_DropdownOption;
 class UMenuAnchor;
 
 UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
-class YCNUIDEMO_API UYCNWidget_Entry_String : public UYCNWidget_EntryBase
+class YCNUIDEMO_API UYCNWidget_Entry_StringOption : public UYCNWidget_EntryBase
 {
 	GENERATED_BODY()
 	
@@ -30,6 +30,8 @@ protected:
 	virtual void SwitchItemStatus(bool bIsSwitch)override;
 
 	virtual void NativeOnEntryReleased() override;
+
+	virtual bool IsValueModified() const override;
 
 public:
 	// 从当前设置重新读取并显示选择文本。

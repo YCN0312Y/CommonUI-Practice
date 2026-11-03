@@ -6,9 +6,13 @@
 #include "CommonRotator.h"
 #include "YCNWidget_RotatorBase.generated.h"
 
-UCLASS()
+class UCommonTextStyle;
+
+UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
 class YCNUIDEMO_API UYCNWidget_RotatorBase : public UCommonRotator
 {
 	GENERATED_BODY()
 	
+public:
+	void SetMyTextStyle(bool bIsSelected, TSubclassOf<UCommonTextStyle> InDefaultStyle, TSubclassOf<UCommonTextStyle> InSelectedStyle);
 };

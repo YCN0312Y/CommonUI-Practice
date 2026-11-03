@@ -9,6 +9,7 @@
 
 class UCommonTextBlock;
 class UDynamicEntryBox;
+class UCommonButtonStyle;
 
 //按钮信息
 struct FWindowButtonInfo
@@ -44,9 +45,12 @@ private:
 	//窗口消息
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCommonTextBlock>CommonText_WindowMessageText;
+
 	//按钮
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<UDynamicEntryBox>EntryBox_Button;
+
+
 
 public:
 	void ButtonClicked(UYCNWindowInfo* InWindowInfo, TFunction<void(EConfirmationWindowsButtonType)> ButtonClickCallback);

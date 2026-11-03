@@ -10,7 +10,7 @@
 #include "YCNUIDemo/UI/Components/YCNWidget_ButtonBase.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_TabListBase.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_ListViewBase.h"
-#include "YCNUIDemo/UI/Widgets/Options/EntryWidget/YCNWidget_Entry_String.h"
+#include "YCNUIDemo/UI/Widgets/Options/EntryWidget/YCNWidget_Entry_StringOption.h"
 #include "YCNUIDemo/Subsystems/YCNWidgetManagerSubsystem.h"
 #include "Input/CommonUIInputTypes.h"
 #include "ICommonInputModule.h"
@@ -221,7 +221,7 @@ UYCNListData_RegisterData* UYCNWidget_Options::InitOwningRegisterData()
 
 void UYCNWidget_Options::OnListEntryGenerated(UUserWidget& EntryWidget)
 {
-	UYCNWidget_Entry_String* ValueEntry = Cast<UYCNWidget_Entry_String>(&EntryWidget);
+	UYCNWidget_Entry_StringOption* ValueEntry = Cast<UYCNWidget_Entry_StringOption>(&EntryWidget);
 	if (IsValid(ValueEntry))
 	{
 		ValueEntry->OnDropdownOpenChanged.BindUObject(this, &UYCNWidget_Options::OnEntryDropdownOpenChanged, ValueEntry);
@@ -236,7 +236,7 @@ void UYCNWidget_Options::SetDropdownBlockerVisible(bool bIsOpen)
 	}
 }
 
-void UYCNWidget_Options::OnEntryDropdownOpenChanged(bool bIsOpen, UYCNWidget_Entry_String* SourceEntry)
+void UYCNWidget_Options::OnEntryDropdownOpenChanged(bool bIsOpen, UYCNWidget_Entry_StringOption* SourceEntry)
 {
 	if (!IsValid(Border_DropdownBlocker))return;
 

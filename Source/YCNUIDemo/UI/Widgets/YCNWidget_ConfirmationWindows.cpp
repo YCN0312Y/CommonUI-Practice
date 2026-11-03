@@ -50,7 +50,7 @@ UYCNWindowInfo* UYCNWindowInfo::CreateYesNoButton(const FText& InWindowMessageTe
 
 void UYCNWidget_ConfirmationWindows::ButtonClicked(UYCNWindowInfo* InWindowInfo, TFunction<void(EConfirmationWindowsButtonType)> ButtonClickCallback)
 {
-	if (!InWindowInfo || !CommonText_WindowMessageText || !EntryBox_Button)return;
+	if (!InWindowInfo || !CommonText_WindowMessageText || !EntryBox_Button || !IsValid(AvailableButtonStyle))return;
 
 	CommonText_WindowMessageText->SetText(InWindowInfo->WindowMessageText);
 
@@ -68,6 +68,8 @@ void UYCNWidget_ConfirmationWindows::ButtonClicked(UYCNWindowInfo* InWindowInfo,
 		if (CreatedButton)
 		{
 			CreatedButton->CommonText_ButtonDisplayText->SetText(CreatedButtonInfo.ButtonDisplayText);
+			
+			CreatedButton->SetStyle(AvailableButtonStyle);
 			CreatedButton->OnClicked().AddLambda(
 				[this, ButtonClickCallback, CreatedButtonInfo]()
 				{

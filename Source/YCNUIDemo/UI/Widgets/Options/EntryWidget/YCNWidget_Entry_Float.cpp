@@ -66,6 +66,7 @@ void UYCNWidget_Entry_Float::SwitchItemStatus(bool bIsSwitch)
 
 void UYCNWidget_Entry_Float::RefreshEntryData()
 {
+    UpdatePointStatus();
     if (bRefreshingEntry || !IsValid(CommonText_CurrentVolume) || !IsValid(Slider_VolumeSlider) || !IsValid(OwningValueData)) return;
     
     float CurrentValue = 0.0f;
@@ -81,6 +82,11 @@ void UYCNWidget_Entry_Float::RefreshEntryData()
     Slider_VolumeSlider->SetValue(CurrentValue);
 
     NotifyUpdateCurrentVolume(CurrentValue);
+}
+
+bool UYCNWidget_Entry_Float::IsValueModified() const
+{
+	return IsValid(OwningValueData) && OwningValueData->CanResetToDefault();
 }
 
 void UYCNWidget_Entry_Float::NotifyUpdateCurrentVolume(float InValue)

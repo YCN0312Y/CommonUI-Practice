@@ -2,15 +2,18 @@
 
 #include "YCNUIDemo/Settings/YCNGameUserSettings.h"
 #include "Kismet/KismetSystemLibrary.h"
+#include "Misc/DefaultValueHelper.h"
 
 UYCNGameUserSettings::UYCNGameUserSettings()
-	:CachedGameDifficulty(FText::FromString(TEXT("简单"))),
-	CachedGlobalVolume(100.f),
-	CachedMusicVolume(100.f),
-	CachedSFXVolume(100.f),
-	CachedVoiceVolume(100.f),
+    :CachedGameDifficulty(FText::FromString(TEXT("简单"))),
+    CachedGlobalVolume(100.f),
+    CachedMusicVolume(100.f),
+    CachedSFXVolume(100.f),
+    CachedVoiceVolume(100.f),
     CachedScreenRatio(FText::FromString(TEXT("自动"))),
-    CachedScreenResolution(GetMaxResolutionText())
+    CachedScreenResolution(GetMaxResolutionText()),
+    CachedFrameRateLimit(0.f),
+    bVerticalSync(false)
 {
 
 }
@@ -20,6 +23,7 @@ UYCNGameUserSettings* UYCNGameUserSettings::Get()
     return GEngine ? Cast<UYCNGameUserSettings>(GEngine->GetGameUserSettings()) : nullptr;
 }
 
+//获取最大分辨率
 bool UYCNGameUserSettings::GetMaxSupportedResolution(FIntPoint& OutResolution) const
 {
     TArray<FIntPoint> Resolutions;
@@ -42,6 +46,7 @@ bool UYCNGameUserSettings::GetMaxSupportedResolution(FIntPoint& OutResolution) c
     return MaxPixels > 0;
 }
 
+//获取最大分辨率文本
 FText UYCNGameUserSettings::GetMaxResolutionText()
 {
     FIntPoint MaxResolution;
@@ -81,6 +86,21 @@ bool UYCNGameUserSettings::ResolveScreenRatio(const FText& InScreenRatio, FIntPo
     return OutResolution.X > 0 && OutResolution.Y > 0;
 }
 
+//根据文本查询可用分辨率
+bool UYCNGameUserSettings::FindAvailableResolutionByText(const FText& InResolutionText, FIntPoint& OutResolution) const
+{
+    for (const FIntPoint& AvailableResolution : GetAvailableResolution())
+    {
+        if (GetResolutionText(AvailableResolution).EqualTo(InResolutionText))
+        {
+            OutResolution = AvailableResolution;
+            return true;
+        }
+    }
+    return false;
+}
+
+//获取可用分辨率
 TArray<FIntPoint> UYCNGameUserSettings::GetAvailableResolution() const
 {
     //结果列表
@@ -126,11 +146,13 @@ TArray<FIntPoint> UYCNGameUserSettings::GetAvailableResolution() const
     return ResultList;
 }
 
+//分辨率转文本
 FText UYCNGameUserSettings::GetResolutionText(const FIntPoint& InResolution)
 {
     return FText::FromString(FString::Printf(TEXT("%dx%d"), InResolution.X, InResolution.Y));
 }
 
+//设置缓存显示模式
 void UYCNGameUserSettings::SetCachedDisplayMode(const FText& InCachedDisplayMode)
 {
     EWindowMode::Type NewMode;
@@ -149,9 +171,28 @@ void UYCNGameUserSettings::SetCachedDisplayMode(const FText& InCachedDisplayMode
     }
 
     SetFullscreenMode(NewMode);
+
+    //切回窗口模式时，按玩家保存的分辨率恢复窗口大小
+    if (NewMode == EWindowMode::Windowed)
+    {
+        FIntPoint TargetResolution = FIntPoint::ZeroValue;
+
+        //优先用保存的分辨率；保存的值无效时（比如换了显示器）退回宽高比
+        if (!FindAvailableResolutionByText(GetCachedScreenResolution(), TargetResolution))
+        {
+            ResolveScreenRatio(GetCachedScreenRatio(), TargetResolution);
+        }
+
+        if (TargetResolution.X > 0 && TargetResolution.Y > 0)
+        {
+            SetScreenResolution(TargetResolution);
+        }
+    }
+
     ApplyResolutionSettings(false);
 }
 
+//获取缓存显示模式
 FText UYCNGameUserSettings::GetCahcedDisplayMode()
 {
     switch (GetFullscreenMode())
@@ -167,6 +208,7 @@ FText UYCNGameUserSettings::GetCahcedDisplayMode()
     }
 }
 
+//设置缓存屏幕宽高比
 void UYCNGameUserSettings::SetCachedScreenRatio(const FText& InCachedScreenRatio)
 {
     if (!IsSupportedScreenRatio(InCachedScreenRatio)) return;
@@ -188,6 +230,7 @@ void UYCNGameUserSettings::SetCachedScreenRatio(const FText& InCachedScreenRatio
     ApplyResolutionSettings(false);
 }
 
+//获取缓存屏幕宽高比
 FText UYCNGameUserSettings::GetCachedScreenRatio()
 {
     if (!IsSupportedScreenRatio(CachedScreenRatio))
@@ -198,34 +241,21 @@ FText UYCNGameUserSettings::GetCachedScreenRatio()
     return CachedScreenRatio;
 }
 
+//设置缓存屏幕分辨率
 void UYCNGameUserSettings::SetCachedScreenResolution(const FText& InCachedScreenResolution)
 {
     FIntPoint TargetResolution = FIntPoint::ZeroValue;
+    if (!FindAvailableResolutionByText(InCachedScreenResolution, TargetResolution)) return;
 
-    bool bFound = false;
-
-    for (const FIntPoint& AvailableResolution : GetAvailableResolution())
-    {
-        if (GetResolutionText(AvailableResolution).EqualTo(InCachedScreenResolution))
-        {
-            TargetResolution = AvailableResolution;
-            bFound = true;
-            break;
-        }
-    }
-
-    if (!bFound)return;
-    
-    //先记录选择：无边框/全屏下分辨率由显示器决定，但偏好要保留下来
     CachedScreenResolution = InCachedScreenResolution;
 
-    //只有窗口模式才由分辨率决定窗口大小
     if (GetFullscreenMode() != EWindowMode::Windowed) return;
 
     SetScreenResolution(TargetResolution);
     ApplyResolutionSettings(false);
 }
 
+//获取缓存屏幕分辨率
 FText UYCNGameUserSettings::GetCachedScreenResolution()
 {
     if (!CachedScreenResolution.IsEmpty())
@@ -241,4 +271,41 @@ FText UYCNGameUserSettings::GetCachedScreenResolution()
     }
 
     return GetResolutionText(GetDesktopResolution());
+}
+
+void UYCNGameUserSettings::SetCachedFrameRateLimit(const FText& InCachedFrameRateLimit)
+{
+	if (InCachedFrameRateLimit.EqualTo(FText::FromString(TEXT("关闭"))))
+	{
+		CachedFrameRateLimit = 0;
+        SetFrameRateLimit(CachedFrameRateLimit);
+        ApplySettings(false);
+        return;
+	}
+	if (!FDefaultValueHelper::ParseFloat(*InCachedFrameRateLimit.ToString(), CachedFrameRateLimit))return;
+
+	SetFrameRateLimit(CachedFrameRateLimit);
+	ApplySettings(false);
+}
+
+FText UYCNGameUserSettings::GetCachedFrameRateLimit()
+{
+    return CachedFrameRateLimit <= 0.f ? FText::FromString(TEXT("关闭")) : FText::AsNumber(CachedFrameRateLimit);
+}
+
+void UYCNGameUserSettings::SetVerticalSync(const FText& InVerticalSync)
+{
+    if (InVerticalSync.EqualTo(FText::FromString(TEXT("开启"))))
+    {
+        bVerticalSync = true;
+    }
+    else if (InVerticalSync.EqualTo(FText::FromString(TEXT("关闭"))))
+    {
+        bVerticalSync = false;
+    }
+}
+
+FText UYCNGameUserSettings::GetVerticalSync()
+{
+    return bVerticalSync ? FText::FromString(TEXT("开启")) : FText::FromString(TEXT("关闭"));
 }

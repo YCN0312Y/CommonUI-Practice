@@ -6,6 +6,8 @@
 #include "CommonActivatableWidget.h"
 #include "YCNWidget_ActivatableWidgetBase.generated.h"
 
+class UCommonButtonStyle;
+
 UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
 class YCNUIDEMO_API UYCNWidget_ActivatableWidgetBase : public UCommonActivatableWidget
 {
@@ -16,6 +18,11 @@ public:
 	APlayerController* GetOwningPC();
 
     virtual TOptional<FUIInputConfig> GetDesiredInputConfig() const override;
+
+protected:
+    //可用按钮样式
+    UPROPERTY(EditDefaultsOnly, Category = "YCN Widget|Style")
+    TSubclassOf<UCommonButtonStyle>AvailableButtonStyle;
 
 protected:
     //控件输入模式

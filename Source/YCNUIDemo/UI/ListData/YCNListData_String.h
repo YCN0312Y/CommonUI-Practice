@@ -39,7 +39,7 @@ public:
 		return SettingBinding;
 	}
 
-private:
+protected:
 	//设置绑定
 	FSettingBinding SettingBinding;
 
@@ -59,4 +59,18 @@ public:
 
 	//获取选项列表
 	const TArray<FText>& GetOptionList()const { return OptionList; }
+};
+
+UCLASS()
+class YCNUIDEMO_API UYCNListData_StringSwitch : public UYCNListData_String
+{
+	GENERATED_BODY()
+
+};
+
+UCLASS()
+class YCNUIDEMO_API UYCNListData_StringBool : public UYCNListData_String
+{
+	GENERATED_BODY()
+
 };

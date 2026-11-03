@@ -10,6 +10,7 @@
 class UYCNListData_Base;
 class UYCNListData_Tab;
 class UYCNGameUserSettings;
+class UYCNListData_String;
 
 UCLASS(Transient)
 class YCNUIDEMO_API UYCNListData_RegisterData : public UObject
@@ -33,15 +34,20 @@ public:
 public:
 	DECLARE_DELEGATE(FOnSettingsValueChanged)
 	FOnSettingsValueChanged OnSettingValueChanged;
+
 private:
 	//初始化游戏设置
 	void InitGameSettingsList();
+
 	//初始化音频设置
 	void InitAudioList();
+
 	//初始化视频设置
 	void InitVideoList();
+
 	//初始化控制设置
 	void InitControlList();
+
 	//初始化帮助设置
 	void InitAssistList();
 
@@ -50,6 +56,9 @@ private:
 
 	//获取最大分辨率值
 	FText GetMaxResolutionText();
+
+	//将可用的分辨率添加进选项列表
+	void AppendResolutionList(UYCNListData_String* InData);
 
 	//绑定值
 	template<typename TData, typename TGetter, typename TSetter>

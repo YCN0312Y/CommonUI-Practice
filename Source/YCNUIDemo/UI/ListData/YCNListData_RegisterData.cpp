@@ -183,6 +183,7 @@ void UYCNListData_RegisterData::InitVideoList()
 				DisplayMode->GetSettingBinding().SetOwningDefaultValue(SetDataText(TEXT("无边框模式")));
 				DisplayMode->AddDataToOptionsList(SetDataText(TEXT("无边框模式")));
 				DisplayMode->AddDataToOptionsList(SetDataText(TEXT("窗口模式")));
+				//绑定值
 				BindCachedValue(DisplayMode, &UYCNGameUserSettings::GetCahcedDisplayMode, &UYCNGameUserSettings::SetCachedDisplayMode);
 				ScreenTab->AddChildData(DisplayMode);
 			}
@@ -206,14 +207,39 @@ void UYCNListData_RegisterData::InitVideoList()
 				ScreenResolution->SetDataID(FName("ScreenResolution"));
 				ScreenResolution->SetDataDisplayText(SetDataText(TEXT("屏幕分辨率")));
 				ScreenResolution->SetDataDescription(SetDataText(TEXT("调整游戏的屏幕分辨率。")));
+				//将可用的分辨率添加进选项列表
+				AppendResolutionList(ScreenResolution);
 				ScreenResolution->GetSettingBinding().SetOwningDefaultValue(GetMaxResolutionText());
-				ScreenResolution->AddDataToOptionsList(GetMaxResolutionText());
-				ScreenResolution->AddDataToOptionsList(SetDataText(TEXT("1920x1080")));
-				ScreenResolution->AddDataToOptionsList(SetDataText(TEXT("1600x900")));
-				ScreenResolution->AddDataToOptionsList(SetDataText(TEXT("1280x700")));
 				//绑定值
 				BindCachedValue(ScreenResolution, &UYCNGameUserSettings::GetCachedScreenResolution, &UYCNGameUserSettings::SetCachedScreenResolution);
 				ScreenTab->AddChildData(ScreenResolution);
+			}
+			UYCNListData_StringSwitch* FrameRateLimit = NewObject<UYCNListData_StringSwitch>();
+			if (FrameRateLimit)
+			{
+				FrameRateLimit->SetDataID(FName("FrameRateLimit"));
+				FrameRateLimit->SetDataDisplayText(SetDataText(TEXT("帧率上限")));
+				FrameRateLimit->SetDataDescription(SetDataText(TEXT("调整游戏的帧率。")));
+				FrameRateLimit->AddDataToOptionsList(SetDataText(TEXT("关闭")));
+				FrameRateLimit->AddDataToOptionsList(SetDataText(TEXT("30")));
+				FrameRateLimit->AddDataToOptionsList(SetDataText(TEXT("60")));
+				FrameRateLimit->AddDataToOptionsList(SetDataText(TEXT("90")));
+				FrameRateLimit->AddDataToOptionsList(SetDataText(TEXT("120")));
+				FrameRateLimit->GetSettingBinding().SetOwningDefaultValue(SetDataText(TEXT("关闭")));
+				BindCachedValue(FrameRateLimit, &UYCNGameUserSettings::GetCachedFrameRateLimit, &UYCNGameUserSettings::SetCachedFrameRateLimit);
+				ScreenTab->AddChildData(FrameRateLimit);
+			}
+			UYCNListData_StringBool* VerticalSync = NewObject<UYCNListData_StringBool>();
+			if (VerticalSync)
+			{
+				VerticalSync->SetDataID(FName("VerticalSync"));
+				VerticalSync->SetDataDisplayText(SetDataText(TEXT("垂直同步")));
+				VerticalSync->SetDataDescription(SetDataText(TEXT("调整游戏的垂直同步。")));
+				VerticalSync->AddDataToOptionsList(SetDataText(TEXT("关闭")));
+				VerticalSync->AddDataToOptionsList(SetDataText(TEXT("开启")));
+				VerticalSync->GetSettingBinding().SetOwningDefaultValue(SetDataText(TEXT("关闭")));
+				BindCachedValue(VerticalSync, &UYCNGameUserSettings::GetVerticalSync, &UYCNGameUserSettings::SetVerticalSync);
+				ScreenTab->AddChildData(VerticalSync);
 			}
 		}
 	}
@@ -255,4 +281,16 @@ FText UYCNListData_RegisterData::GetMaxResolutionText()
 		return UserSettings->GetMaxResolutionText();
 	}
 	return FText();
+}
+
+//将可用的分辨率添加进选项列表
+void UYCNListData_RegisterData::AppendResolutionList(UYCNListData_String* InData)
+{
+	if (UserSettings.IsValid())
+	{
+		for (const FIntPoint& AddedOption : UserSettings->GetAvailableResolution())
+		{
+			InData->AddDataToOptionsList(UYCNGameUserSettings::GetResolutionText(AddedOption));
+		}
+	}
 }

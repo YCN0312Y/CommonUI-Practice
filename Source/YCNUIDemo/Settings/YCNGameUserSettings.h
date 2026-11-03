@@ -46,6 +46,14 @@ private:
 	UPROPERTY(Config)
 	FText CachedScreenResolution;
 
+	//帧率上限
+	UPROPERTY(Config)
+	float CachedFrameRateLimit;
+
+	//垂直同步
+	UPROPERTY(Config)
+	float bVerticalSync;
+
 private:
 	//获取最大分辨率
 	bool GetMaxSupportedResolution(FIntPoint& OutResolution) const;
@@ -56,20 +64,22 @@ private:
 	//把宽高比文本解析成目标分辨率
 	bool ResolveScreenRatio(const FText& InScreenRatio, FIntPoint& OutResolution) const;
 
+	//在可用分辨率列表里查找文本对应的分辨率
+	bool FindAvailableResolutionByText(const FText& InResolutionText, FIntPoint& OutResolution) const;
+
+public:
+	//获取最大分辨率字符串
+	FText GetMaxResolutionText();
+
 	//获取可用分辨率（按像素数升序）
 	TArray<FIntPoint> GetAvailableResolution() const;
 
 	//把分辨率转成显示文本（格式：1920x1080）
 	static FText GetResolutionText(const FIntPoint& InResolution);
 
-public:
-	//获取最大分辨率字符串
-	FText GetMaxResolutionText();
-
 	/*
 	* 回调----------
 	*/
-
 	//游戏难度
 	MAKE_SET_GET(FText, CachedGameDifficulty);
 
@@ -85,23 +95,35 @@ public:
 	//对话音量
 	MAKE_SET_GET(float, CachedVoiceVolume);
 
-	//设置缓存显示模式
+	//设置显示模式
 	void SetCachedDisplayMode(const FText& InCachedDisplayMode);
 
-	//获取缓存显示模式
+	//获取显示模式
 	FText GetCahcedDisplayMode();
 
-	//设置缓存屏幕宽高比
+	//设置屏幕宽高比
 	void SetCachedScreenRatio(const FText& InCachedScreenRatio);
 
-	//获取缓存屏幕宽高比
+	//获取屏幕宽高比
 	FText GetCachedScreenRatio();
 
-	//设置缓存屏幕分辨率
+	//设置屏幕分辨率
 	void SetCachedScreenResolution(const FText& InCachedScreenResolution);
 
-	//获取缓存屏幕分辨率
+	//获取屏幕分辨率
 	FText GetCachedScreenResolution();
+
+	//设置帧率上限
+	void SetCachedFrameRateLimit(const FText& InCachedFrameRateLimit);
+
+	//获取帧率上限
+	FText GetCachedFrameRateLimit();
+
+	//设置垂直同步
+	void SetVerticalSync(const FText& InVerticalSync);
+
+	//获取垂直同步
+	FText GetVerticalSync();
 
 
 };
