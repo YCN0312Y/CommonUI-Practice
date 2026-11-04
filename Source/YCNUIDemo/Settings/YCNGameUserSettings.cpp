@@ -3,6 +3,7 @@
 #include "YCNUIDemo/Settings/YCNGameUserSettings.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Misc/DefaultValueHelper.h"
+#include "HAL/IConsoleManager.h"
 
 UYCNGameUserSettings::UYCNGameUserSettings()
     :CachedGameDifficulty(FText::FromString(TEXT("简单"))),
@@ -13,7 +14,12 @@ UYCNGameUserSettings::UYCNGameUserSettings()
     CachedScreenRatio(FText::FromString(TEXT("自动"))),
     CachedScreenResolution(GetMaxResolutionText()),
     CachedFrameRateLimit(0.f),
-    bVerticalSync(false)
+    bVerticalSync(false),
+    CachedDynamicFuzzy(FText::FromString(TEXT("自动"))),
+    CachedSharpenAmount(5.f),
+    bSubtitle(true),
+    CachedAAMethod(4),
+    CachedMSAACount(4)
 {
 
 }
@@ -21,6 +27,14 @@ UYCNGameUserSettings::UYCNGameUserSettings()
 UYCNGameUserSettings* UYCNGameUserSettings::Get()
 {
     return GEngine ? Cast<UYCNGameUserSettings>(GEngine->GetGameUserSettings()) : nullptr;
+}
+
+void UYCNGameUserSettings::ApplyNonResolutionSettings()
+{
+    Super::ApplyNonResolutionSettings();
+
+    SetCachedDynamicFuzzy(GetCachedDynamicFuzzy());
+    SetCachedSharpenAmount(GetCachedSharpenAmount());
 }
 
 //获取最大分辨率
@@ -98,6 +112,49 @@ bool UYCNGameUserSettings::FindAvailableResolutionByText(const FText& InResoluti
         }
     }
     return false;
+}
+
+void UYCNGameUserSettings::SetConsoleVariable(const FString& InVariableString, float InValue)
+{
+    if (IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(*InVariableString))
+    {
+        CVar->Set(InValue, ECVF_SetByGameSetting);
+    }
+}
+
+void UYCNGameUserSettings::ApplyAntiAliasingSettings()
+{
+    // 验证配置文件加载进来的数值。
+    if (CachedAAMethod < 0 || CachedAAMethod > 4)
+    {
+        CachedAAMethod = 4;
+    }
+
+    if (CachedMSAACount != 1 && CachedMSAACount != 2 && CachedMSAACount != 4 && CachedMSAACount != 8)
+    {
+        CachedMSAACount = 4;
+    }
+
+    // 防止旧配置在不支持桌面 MSAA 的项目中继续使用 MSAA。
+    if (CachedAAMethod == 3)
+    {
+        const IConsoleVariable* ForwardShading = IConsoleManager::Get().FindConsoleVariable(TEXT("r.ForwardShading"));
+
+        if (!ForwardShading || ForwardShading->GetInt() == 0)
+        {
+            CachedAAMethod = 4;
+        }
+    }
+
+    if (IConsoleVariable* SampleCount = IConsoleManager::Get().FindConsoleVariable(TEXT("r.MSAACount")))
+    {
+        SampleCount->Set(CachedMSAACount, ECVF_SetByGameSetting);
+    }
+
+    if (IConsoleVariable* Method = IConsoleManager::Get().FindConsoleVariable(TEXT("r.AntiAliasingMethod")))
+    {
+        Method->Set(CachedAAMethod, ECVF_SetByGameSetting);
+    }
 }
 
 //获取可用分辨率
@@ -308,4 +365,184 @@ void UYCNGameUserSettings::SetVerticalSync(const FText& InVerticalSync)
 FText UYCNGameUserSettings::GetVerticalSync()
 {
     return bVerticalSync ? FText::FromString(TEXT("开启")) : FText::FromString(TEXT("关闭"));
+}
+
+void UYCNGameUserSettings::SetCachedDynamicFuzzy(const FText& InCachedDynamicFuzzy)
+{
+    float Amount = -1.0f;
+    if (InCachedDynamicFuzzy.EqualTo(FText::FromString(TEXT("自动"))))
+    {
+        CachedDynamicFuzzy = FText::FromString(TEXT("自动"));
+        Amount = -1.0f;
+    }
+    else if(InCachedDynamicFuzzy.EqualTo(FText::FromString(TEXT("弱"))))
+    {
+        CachedDynamicFuzzy = FText::FromString(TEXT("弱"));
+        Amount = 0.25f;
+    }
+    else if(InCachedDynamicFuzzy.EqualTo(FText::FromString(TEXT("强"))))
+    {
+        CachedDynamicFuzzy = FText::FromString(TEXT("强"));
+        Amount = 0.75f;
+    }
+    else if(InCachedDynamicFuzzy.EqualTo(FText::FromString(TEXT("关闭"))))
+    {
+        CachedDynamicFuzzy = FText::FromString(TEXT("关闭"));
+        Amount = 0.0f;
+    }
+    else
+    {
+        return;
+    }
+
+    SetConsoleVariable(TEXT("r.MotionBlur.Amount"), Amount);
+}
+
+FText UYCNGameUserSettings::GetCachedDynamicFuzzy()
+{
+    return CachedDynamicFuzzy.IsEmpty() ? FText::FromString(TEXT("自动")) : CachedDynamicFuzzy;
+}
+
+void UYCNGameUserSettings::SetCachedSharpenAmount(float InCachedSharpenAmount)
+{
+    if (!FMath::IsFinite(InCachedSharpenAmount))return;
+    
+    CachedSharpenAmount = FMath::Clamp(InCachedSharpenAmount, 0.0f, 10.0f);
+
+    const float EngineSharpenAmount = CachedSharpenAmount / 10.0f;
+
+    SetConsoleVariable(TEXT("r.Tonemapper.Sharpen"), EngineSharpenAmount);
+}
+
+float UYCNGameUserSettings::GetCachedSharpenAmount() const
+{
+    return CachedSharpenAmount;
+}
+
+void UYCNGameUserSettings::SetbSubtitle(const FText& InSubtitle)
+{
+    if (InSubtitle.EqualTo(FText::FromString(TEXT("开启"))))
+    {
+        bSubtitle = true;
+    }
+    else if (InSubtitle.EqualTo(FText::FromString(TEXT("关闭"))))
+    {
+        bSubtitle = false;
+    }
+}
+
+FText UYCNGameUserSettings::GetbSubtitle() const
+{
+    return bSubtitle ? FText::FromString(TEXT("开启")) : FText::FromString(TEXT("关闭"));
+}
+
+void UYCNGameUserSettings::SetRenderResolutionPercent(float InValue)
+{
+    if (!FMath::IsFinite(InValue)) return;
+    
+    const float ClampedValue = FMath::Clamp(InValue, 25.0f, 100.0f);
+    const float ResolutionPercent = static_cast<float>(FMath::RoundToInt(ClampedValue));
+    SetResolutionScaleValueEx(ResolutionPercent);
+    ApplyNonResolutionSettings();
+}
+
+float UYCNGameUserSettings::GetRenderResolutionPercent() const
+{
+    float NormalizedValue = 0.0f;
+    float CurrentPercent = 100.0f;
+    float MinPercent = 0.0f;
+    float MaxPercent = 100.0f;
+
+    GetResolutionScaleInformationEx(NormalizedValue, CurrentPercent, MinPercent, MaxPercent);
+
+    return CurrentPercent;
+}
+
+void UYCNGameUserSettings::SetCachedAAMethod(const FText& InValue)
+{
+    int32 NewMethod;
+
+    if (InValue.EqualTo(FText::FromString(TEXT("FXAA"))))
+    {
+        NewMethod = 1;
+    }
+    else if (InValue.EqualTo(FText::FromString(TEXT("TAA"))))
+    {
+        NewMethod = 2;
+    }
+    else if (InValue.EqualTo(FText::FromString(TEXT("MSAA"))))
+    {
+        NewMethod = 3;
+    }
+    else if (InValue.EqualTo(FText::FromString(TEXT("TSR"))))
+    {
+        NewMethod = 4;
+    }
+    else
+    {
+        return;
+    }
+
+    if (NewMethod == 3)
+    {
+        const IConsoleVariable* ForwardShading = IConsoleManager::Get().FindConsoleVariable(TEXT("r.ForwardShading"));
+
+        if (!ForwardShading || ForwardShading->GetInt() == 0) return;
+        
+    }
+
+    CachedAAMethod = NewMethod;
+
+    ApplyAntiAliasingSettings();
+}
+
+FText UYCNGameUserSettings::GetCachedAAMethod() const
+{
+    switch (CachedAAMethod)
+    {
+    case 0: return FText::GetEmpty();
+    case 1: return FText::FromString(TEXT("FXAA"));
+    case 2: return FText::FromString(TEXT("TAA"));
+    case 3: return FText::FromString(TEXT("MSAA"));
+    case 4: return FText::FromString(TEXT("TSR"));
+    default: return FText::FromString(TEXT("TSR"));
+    }
+}
+
+void UYCNGameUserSettings::SetFrameGeneration(const FText& InValue)
+{
+    if (InValue.EqualTo(FText::FromString(TEXT("1X"))))
+    {
+        CachedMSAACount = 1;
+    }
+    else if (InValue.EqualTo(FText::FromString(TEXT("2X"))))
+    {
+        CachedMSAACount = 2;
+    }
+    else if (InValue.EqualTo(FText::FromString(TEXT("4X"))))
+    {
+        CachedMSAACount = 4;
+    }
+    else if (InValue.EqualTo(FText::FromString(TEXT("8X"))))
+    {
+        CachedMSAACount = 8;
+    }
+    else
+    {
+        return;
+    }
+
+    ApplyAntiAliasingSettings();
+}
+
+FText UYCNGameUserSettings::GetFrameGeneration() const
+{
+    switch (CachedMSAACount)
+    {
+    case 1: return FText::FromString(TEXT("1X"));
+    case 2: return FText::FromString(TEXT("2X"));
+    case 4: return FText::FromString(TEXT("4X"));
+    case 8: return FText::FromString(TEXT("8X"));
+    default: return FText::FromString(TEXT("4X"));
+    }
 }

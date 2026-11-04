@@ -83,12 +83,15 @@ void UYCNWidget_EntryBase::UpdatePointStatus()
 
 void UYCNWidget_EntryBase::SetEnrtyDisplayText(const FText& InDisplayText)
 {
-	CommonText_DisplayText->SetText(InDisplayText);
+	if (CommonText_DisplayText)
+	{
+		CommonText_DisplayText->SetText(InDisplayText);
+	}
 }
 
 void UYCNWidget_EntryBase::SwitchItemStatus(bool bIsSwitch)
 {
-	if (!IsValid(Border_Point) || !IsValid(Border_HighLight) || !IsValid(CommonText_DisplayText))return;
+	if (!IsValid(Border_HighLight) || !IsValid(CommonText_DisplayText))return;
 
 	if (IsValid(Border_Point))
 	{

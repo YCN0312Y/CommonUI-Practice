@@ -13,6 +13,13 @@ void UYCNWidget_Entry_Float::NativeOnListItemObjectSet(UObject* ListItemObject)
 
     OwningValueData = Cast<UYCNListData_Float>(ListItemObject);
 
+    if (IsValid(OwningValueData) && IsValid(Slider_VolumeSlider) && IsValid(CommonText_MinVolume) && IsValid(CommonText_MaxVolume))
+    {
+        CommonText_MinVolume->SetText(FText::AsNumber(OwningValueData->GetMinValue()));
+        CommonText_MaxVolume->SetText(FText::AsNumber(OwningValueData->GetMaxValue()));
+        Slider_VolumeSlider->SetMinValue(OwningValueData->GetMinValue());
+        Slider_VolumeSlider->SetMaxValue(OwningValueData->GetMaxValue());
+    }
     RefreshEntryData();
 }
 

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Value.h"
+#include "YCNUIDemo/Msic/YCNFunctionHelper.h"
 #include "YCNListData_Float.generated.h"
 
 UCLASS()
@@ -24,7 +25,7 @@ public:
 			return HasDefaultValue()
 				&& HasWriteBinding()
 				&& TryRead(CurrentValue)
-				&& CurrentValue != GetOwningDefaultValue();
+				&& !FMath::IsNearlyEqual(CurrentValue, GetOwningDefaultValue(), KINDA_SMALL_NUMBER);
 		}
 	};
 
@@ -43,11 +44,21 @@ private:
 	//设置绑定
 	FSettingBinding SettingBinding;
 
+	//最小值
+	float MinValue;
+
+	//最大值
+	float MaxValue;
+
 public:
 	//能否重置为默认值
 	virtual bool CanResetToDefault()const override;
 
 	//重置为默认值
 	virtual bool ResetToDefault()const override;
+
+	MAKE_SET_GET(float, MinValue);
+
+	MAKE_SET_GET(float, MaxValue);
 
 };

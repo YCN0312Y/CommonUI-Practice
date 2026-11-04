@@ -17,6 +17,9 @@ public:
 
 	static UYCNGameUserSettings* Get();
 
+protected:
+	virtual void ApplyNonResolutionSettings() override;
+
 private:
 	//游戏难度
 	UPROPERTY(Config)
@@ -52,7 +55,27 @@ private:
 
 	//垂直同步
 	UPROPERTY(Config)
-	float bVerticalSync;
+	bool bVerticalSync;
+
+	//动态模糊
+	UPROPERTY(Config)
+	FText CachedDynamicFuzzy;
+
+	//锐化强度
+	UPROPERTY(Config)
+	float CachedSharpenAmount;
+
+	//字幕
+	UPROPERTY(Config)
+	bool bSubtitle;
+
+	//超分辨率采样
+	UPROPERTY(Config)
+	int32 CachedAAMethod;
+
+	//帧生成
+	UPROPERTY(Config)
+	int32 CachedMSAACount;
 
 private:
 	//获取最大分辨率
@@ -66,6 +89,11 @@ private:
 
 	//在可用分辨率列表里查找文本对应的分辨率
 	bool FindAvailableResolutionByText(const FText& InResolutionText, FIntPoint& OutResolution) const;
+
+	//设置控制台变量
+	void SetConsoleVariable(const FString& InVariableString, float InValue);
+
+	void ApplyAntiAliasingSettings();
 
 public:
 	//获取最大分辨率字符串
@@ -95,35 +123,47 @@ public:
 	//对话音量
 	MAKE_SET_GET(float, CachedVoiceVolume);
 
-	//设置显示模式
+	//显示模式
 	void SetCachedDisplayMode(const FText& InCachedDisplayMode);
-
-	//获取显示模式
 	FText GetCahcedDisplayMode();
 
-	//设置屏幕宽高比
+	//屏幕宽高比
 	void SetCachedScreenRatio(const FText& InCachedScreenRatio);
-
-	//获取屏幕宽高比
 	FText GetCachedScreenRatio();
 
-	//设置屏幕分辨率
+	//屏幕分辨率
 	void SetCachedScreenResolution(const FText& InCachedScreenResolution);
-
-	//获取屏幕分辨率
 	FText GetCachedScreenResolution();
 
-	//设置帧率上限
+	//帧率上限
 	void SetCachedFrameRateLimit(const FText& InCachedFrameRateLimit);
-
-	//获取帧率上限
 	FText GetCachedFrameRateLimit();
 
-	//设置垂直同步
+	//垂直同步
 	void SetVerticalSync(const FText& InVerticalSync);
-
-	//获取垂直同步
 	FText GetVerticalSync();
 
+	//动态模糊
+	void SetCachedDynamicFuzzy(const FText& InCachedDynamicFuzzy);
+	FText GetCachedDynamicFuzzy();
 
+	//锐化强度
+	void SetCachedSharpenAmount(float InCachedSharpenAmount);
+	float GetCachedSharpenAmount()const;
+
+	//锐化强度
+	void SetbSubtitle(const FText& InSubtitle);
+	FText GetbSubtitle()const;
+
+	//超采样清晰度
+	void SetRenderResolutionPercent(float InValue);
+	float GetRenderResolutionPercent()const;
+
+	//超分辨率采样
+	void SetCachedAAMethod(const FText& InValue);
+	FText GetCachedAAMethod() const;
+
+	//帧生成
+	void SetFrameGeneration(const FText& InValue);
+	FText GetFrameGeneration() const;
 };

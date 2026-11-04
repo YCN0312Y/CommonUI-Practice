@@ -5,6 +5,7 @@
 #include "YCNUIDemo/UI/ListData/YCNListData_Tab.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_String.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Float.h"
+#include "YCNUIDemo/UI/ListData/YCNListData_Text.h"
 #include "YCNUIDemo/Settings/YCNGameUserSettings.h"
 #include "GenericPlatform/GenericWindow.h"
 
@@ -17,11 +18,14 @@ void UYCNListData_RegisterData::InitDataList()
 		UserSettings = UYCNGameUserSettings::Get();
 	}
 
+	InitControllerList();
+	InitKeyboardMouseList();
 	InitGameSettingsList();
+	InitDisplayList();
+	InitHDList();
 	InitAudioList();
-	InitVideoList();
-	InitControlList();
 	InitAssistList();
+	InitQuitList();
 }
 
 UYCNListData_Tab* UYCNListData_RegisterData::GetDataByDataID(const FName& InDataID)
@@ -34,6 +38,30 @@ UYCNListData_Tab* UYCNListData_RegisterData::GetDataByDataID(const FName& InData
 		}
 	}
 	return nullptr;
+}
+
+void UYCNListData_RegisterData::InitControllerList()
+{
+	UYCNListData_Tab* ControllerTab = NewObject<UYCNListData_Tab>();
+	if (ControllerTab)
+	{
+		ControllerTab->SetDataID(FName("ControllerTab"));
+		ControllerTab->SetDataDisplayText(SetDataText(TEXT("控制器")));
+
+		AvailableDataList.Add(ControllerTab);
+	}
+}
+
+void UYCNListData_RegisterData::InitKeyboardMouseList()
+{
+	UYCNListData_Tab* KeyboardMouseTab = NewObject<UYCNListData_Tab>();
+	if (KeyboardMouseTab)
+	{
+		KeyboardMouseTab->SetDataID(FName("KeyboardMouseTab"));
+		KeyboardMouseTab->SetDataDisplayText(SetDataText(TEXT("键盘与鼠标")));
+
+		AvailableDataList.Add(KeyboardMouseTab);
+	}
 }
 
 void UYCNListData_RegisterData::InitGameSettingsList()
@@ -107,6 +135,8 @@ void UYCNListData_RegisterData::InitAudioList()
 					GlobalVolume->SetDataID(FName("GlobalVolume"));
 					GlobalVolume->SetDataDisplayText(SetDataText(TEXT("全局音量")));
 					GlobalVolume->SetDataDescription(SetDataText(TEXT("调整所有声音的总开关。")));
+					GlobalVolume->SetMaxValue(100.f);
+					GlobalVolume->SetMinValue(0.f);
 					GlobalVolume->GetSettingBinding().SetOwningDefaultValue(100.f);
 					//绑定值
 					BindCachedValue(GlobalVolume, &UYCNGameUserSettings::GetCachedGlobalVolume, &UYCNGameUserSettings::SetCachedGlobalVolume);
@@ -120,6 +150,8 @@ void UYCNListData_RegisterData::InitAudioList()
 					MusicVolume->SetDataID(FName("MusicVolume"));
 					MusicVolume->SetDataDisplayText(SetDataText(TEXT("音乐音量")));
 					MusicVolume->SetDataDescription(SetDataText(TEXT("调整音乐音量。")));
+					MusicVolume->SetMaxValue(100.f);
+					MusicVolume->SetMinValue(0.f);
 					MusicVolume->GetSettingBinding().SetOwningDefaultValue(100.f);
 					//绑定值
 					BindCachedValue(MusicVolume, &UYCNGameUserSettings::GetCachedMusicVolume, &UYCNGameUserSettings::SetCachedMusicVolume);
@@ -133,6 +165,8 @@ void UYCNListData_RegisterData::InitAudioList()
 					SFXVolume->SetDataID(FName("SFXVolume"));
 					SFXVolume->SetDataDisplayText(SetDataText(TEXT("音效音量")));
 					SFXVolume->SetDataDescription(SetDataText(TEXT("调整动作、UI点击等特效的音量。")));
+					SFXVolume->SetMaxValue(100.f);
+					SFXVolume->SetMinValue(0.f);
 					SFXVolume->GetSettingBinding().SetOwningDefaultValue(100.f);
 					//绑定值
 					BindCachedValue(SFXVolume, &UYCNGameUserSettings::GetCachedSFXVolume, &UYCNGameUserSettings::SetCachedSFXVolume);
@@ -146,6 +180,8 @@ void UYCNListData_RegisterData::InitAudioList()
 					VoiceVolume->SetDataID(FName("VoiceVolume"));
 					VoiceVolume->SetDataDisplayText(SetDataText(TEXT("对话音量")));
 					VoiceVolume->SetDataDescription(SetDataText(TEXT("调整角色配音与旁白的音量。")));
+					VoiceVolume->SetMaxValue(100.f);
+					VoiceVolume->SetMinValue(0.f);
 					VoiceVolume->GetSettingBinding().SetOwningDefaultValue(100.f);
 					//绑定值
 					BindCachedValue(VoiceVolume, &UYCNGameUserSettings::GetCachedVoiceVolume, &UYCNGameUserSettings::SetCachedVoiceVolume);
@@ -156,15 +192,15 @@ void UYCNListData_RegisterData::InitAudioList()
 	}
 }
 
-void UYCNListData_RegisterData::InitVideoList()
+void UYCNListData_RegisterData::InitDisplayList()
 {
-	UYCNListData_Tab* VideoTab = NewObject<UYCNListData_Tab>();
-	if (VideoTab)
+	UYCNListData_Tab* DisplayTab = NewObject<UYCNListData_Tab>();
+	if (DisplayTab)
 	{
-		VideoTab->SetDataID(FName("VideoTab"));
-		VideoTab->SetDataDisplayText(SetDataText(TEXT("视频")));
+		DisplayTab->SetDataID(FName("DisplayTab"));
+		DisplayTab->SetDataDisplayText(SetDataText(TEXT("显示")));
 
-		AvailableDataList.Add(VideoTab);
+		AvailableDataList.Add(DisplayTab);
 
 		UYCNListData_Tab* ScreenTab = NewObject<UYCNListData_Tab>();
 		if (ScreenTab)
@@ -172,7 +208,7 @@ void UYCNListData_RegisterData::InitVideoList()
 			ScreenTab->SetDataID(FName("ScreenTab"));
 			ScreenTab->SetDataDisplayText(SetDataText(TEXT("显示")));
 
-			VideoTab->AddChildData(ScreenTab);
+			DisplayTab->AddChildData(ScreenTab);
 
 			UYCNListData_String* DisplayMode = NewObject<UYCNListData_String>();
 			if (DisplayMode)
@@ -242,18 +278,133 @@ void UYCNListData_RegisterData::InitVideoList()
 				ScreenTab->AddChildData(VerticalSync);
 			}
 		}
+		UYCNListData_Tab* ScreenEffect = NewObject<UYCNListData_Tab>();
+		if (ScreenEffect)
+		{
+			ScreenEffect->SetDataID(FName("ScreenEffect"));
+			ScreenEffect->SetDataDisplayText(SetDataText(TEXT("显示效果")));
+
+			DisplayTab->AddChildData(ScreenEffect);
+
+			UYCNListData_StringSwitch* DynamicFuzzy = NewObject<UYCNListData_StringSwitch>();
+			if (DynamicFuzzy)
+			{
+				DynamicFuzzy->SetDataID(FName("DynamicFuzzy"));
+				DynamicFuzzy->SetDataDisplayText(SetDataText(TEXT("动态模糊")));
+				DynamicFuzzy->SetDataDescription(SetDataText(TEXT("调整游戏的动态模糊。")));
+				DynamicFuzzy->AddDataToOptionsList(SetDataText(TEXT("自动")));
+				DynamicFuzzy->AddDataToOptionsList(SetDataText(TEXT("强")));
+				DynamicFuzzy->AddDataToOptionsList(SetDataText(TEXT("弱")));
+				DynamicFuzzy->AddDataToOptionsList(SetDataText(TEXT("关闭")));
+				DynamicFuzzy->GetSettingBinding().SetOwningDefaultValue(SetDataText(TEXT("自动")));
+				BindCachedValue(DynamicFuzzy, &UYCNGameUserSettings::GetCachedDynamicFuzzy, &UYCNGameUserSettings::SetCachedDynamicFuzzy);
+
+				ScreenEffect->AddChildData(DynamicFuzzy);
+			}
+
+			UYCNListData_Float* SharpenAmount = NewObject<UYCNListData_Float>();
+			if (SharpenAmount)
+			{
+				SharpenAmount->SetDataID(FName("SharpenAmount"));
+				SharpenAmount->SetDataDisplayText(SetDataText(TEXT("锐化强度")));
+				SharpenAmount->SetDataDescription(SetDataText(TEXT("调整游戏的锐化强度。")));
+				SharpenAmount->SetMinValue(0.f);
+				SharpenAmount->SetMaxValue(10.f);
+				SharpenAmount->GetSettingBinding().SetOwningDefaultValue(5.f);
+				BindCachedValue(SharpenAmount, &UYCNGameUserSettings::GetCachedSharpenAmount, &UYCNGameUserSettings::SetCachedSharpenAmount);
+
+				ScreenEffect->AddChildData(SharpenAmount);
+			}
+			
+		}
 	}
 }
 
-void UYCNListData_RegisterData::InitControlList()
+void UYCNListData_RegisterData::InitHDList()
 {
-	UYCNListData_Tab* ControlTab = NewObject<UYCNListData_Tab>();
-	if (ControlTab)
+	UYCNListData_Tab* HDTab = NewObject<UYCNListData_Tab>();
+	if (HDTab)
 	{
-		ControlTab->SetDataID(FName("ControlTab"));
-		ControlTab->SetDataDisplayText(SetDataText(TEXT("控制")));
+		HDTab->SetDataID(FName("HDTab"));
+		HDTab->SetDataDisplayText(SetDataText(TEXT("画质")));
 
-		AvailableDataList.Add(ControlTab);
+		AvailableDataList.Add(HDTab);
+
+		UYCNListData_Tab* HDSetting = NewObject<UYCNListData_Tab>();
+		if (HDSetting)
+		{
+			HDSetting->SetDataID(FName("HDSetting"));
+			HDSetting->SetDataDisplayText(SetDataText(TEXT("画质设置")));
+
+			HDTab->AddChildData(HDSetting);
+
+			UYCNListData_Text* ApplyHD = NewObject<UYCNListData_Text>();
+			if (ApplyHD)
+			{
+				ApplyHD->SetDataID(FName("ApplyHD"));
+				ApplyHD->SetDataDisplayText(SetDataText(TEXT("应用画质等级")));
+				ApplyHD->SetDataDescription(SetDataText(TEXT("设定游戏画面质量。")));
+
+				HDSetting->AddChildData(ApplyHD);
+			}
+		}
+		UYCNListData_Tab* SRSampling = NewObject<UYCNListData_Tab>();
+		if (SRSampling)
+		{
+			SRSampling->SetDataID(FName("SRSampling"));
+			SRSampling->SetDataDisplayText(SetDataText(TEXT("超分辨率采样")));
+
+			HDTab->AddChildData(SRSampling);
+
+			UYCNListData_Float* SRSharpness = NewObject<UYCNListData_Float>();
+			if (SRSharpness)
+			{
+				SRSharpness->SetDataID(FName("SRSharpness"));
+				SRSharpness->SetDataDisplayText(SetDataText(TEXT("超采样清晰度")));
+				SRSharpness->SetMinValue(25.f);
+				SRSharpness->SetMaxValue(100.f);
+				SRSharpness->GetSettingBinding().SetOwningDefaultValue(58.f);
+				BindCachedValue(SRSharpness, &UYCNGameUserSettings::GetRenderResolutionPercent, &UYCNGameUserSettings::SetRenderResolutionPercent);
+				SRSampling->AddChildData(SRSharpness);
+			}
+
+			UYCNListData_StringSwitch* AAMethod = NewObject<UYCNListData_StringSwitch>();
+			if (AAMethod)
+			{
+				AAMethod->SetDataID(FName("AAMethod"));
+				AAMethod->SetDataDisplayText(SetDataText(TEXT("超分辨率采样")));
+				AAMethod->AddDataToOptionsList(SetDataText(TEXT("FXAA")));
+				AAMethod->AddDataToOptionsList(SetDataText(TEXT("TAA")));
+				AAMethod->AddDataToOptionsList(SetDataText(TEXT("MSAA")));
+				AAMethod->AddDataToOptionsList(SetDataText(TEXT("TSR")));
+				AAMethod->GetSettingBinding().SetOwningDefaultValue(SetDataText(TEXT("TSR")));
+				BindCachedValue(AAMethod, &UYCNGameUserSettings::GetCachedAAMethod, &UYCNGameUserSettings::SetCachedAAMethod);
+				SRSampling->AddChildData(AAMethod);
+			}
+
+			UYCNListData_StringSwitch* FrameGeneration = NewObject<UYCNListData_StringSwitch>();
+			if (FrameGeneration)
+			{
+				FrameGeneration->SetDataID(FName("FrameGeneration"));
+				FrameGeneration->SetDataDisplayText(SetDataText(TEXT("帧生成")));
+				FrameGeneration->AddDataToOptionsList(SetDataText(TEXT("1X")));
+				FrameGeneration->AddDataToOptionsList(SetDataText(TEXT("2X")));
+				FrameGeneration->AddDataToOptionsList(SetDataText(TEXT("4X")));
+				FrameGeneration->AddDataToOptionsList(SetDataText(TEXT("8X")));
+				FrameGeneration->GetSettingBinding().SetOwningDefaultValue(SetDataText(TEXT("4X")));
+				BindCachedValue(FrameGeneration, &UYCNGameUserSettings::GetFrameGeneration, &UYCNGameUserSettings::SetFrameGeneration);
+				SRSampling->AddChildData(FrameGeneration);
+			}
+
+		}
+		UYCNListData_Tab* RayTracing = NewObject<UYCNListData_Tab>();
+		if (RayTracing)
+		{
+			RayTracing->SetDataID(FName("RayTracing"));
+			RayTracing->SetDataDisplayText(SetDataText(TEXT("全景光线追踪")));
+
+			HDTab->AddChildData(RayTracing);
+		}
 	}
 }
 
@@ -263,9 +414,45 @@ void UYCNListData_RegisterData::InitAssistList()
 	if (AssistTab)
 	{
 		AssistTab->SetDataID(FName("AssistTab"));
-		AssistTab->SetDataDisplayText(SetDataText(TEXT("辅助")));
+		AssistTab->SetDataDisplayText(SetDataText(TEXT("辅助设置")));
 
 		AvailableDataList.Add(AssistTab);
+
+		UYCNListData_StringBool* Subtitle = NewObject<UYCNListData_StringBool>();
+		if (Subtitle)
+		{
+			Subtitle->SetDataID(FName("Subtitle"));
+			Subtitle->SetDataDisplayText(SetDataText(TEXT("字幕")));
+			Subtitle->SetDataDescription(SetDataText(TEXT("设置是否显示字幕。")));
+			Subtitle->AddDataToOptionsList(SetDataText(TEXT("关闭")));
+			Subtitle->AddDataToOptionsList(SetDataText(TEXT("开启")));
+			Subtitle->GetSettingBinding().SetOwningDefaultValue(SetDataText(TEXT("开启")));
+			BindCachedValue(Subtitle, &UYCNGameUserSettings::GetbSubtitle, &UYCNGameUserSettings::SetbSubtitle);
+			AssistTab->AddChildData(Subtitle);
+		}
+
+	}
+}
+
+void UYCNListData_RegisterData::InitQuitList()
+{
+	UYCNListData_Tab* QuitTab = NewObject<UYCNListData_Tab>();
+	if (QuitTab)
+	{
+		QuitTab->SetDataID(FName("QuitTab"));
+		QuitTab->SetDataDisplayText(SetDataText(TEXT("退出游戏")));
+
+		AvailableDataList.Add(QuitTab);
+
+		UYCNListData_Text* QuitGame = NewObject<UYCNListData_Text>();
+		if (QuitGame)
+		{
+			QuitGame->SetDataID(FName("QuitGame"));
+			QuitGame->SetDataDisplayText(SetDataText(TEXT("退出至桌面")));
+			QuitGame->SetDataDescription(SetDataText(TEXT("退出游戏到桌面。")));
+
+			QuitTab->AddChildData(QuitGame);
+		}
 	}
 }
 

@@ -53,7 +53,7 @@ void UYCNWidget_TabListBase::ApplyRegisterTab(const UYCNListData_Tab* InData)
 			USizeBox* ButtonBox = WidgetTree->ConstructWidget<USizeBox>();
 			if (ButtonBox)
 			{
-				ButtonBox->SetHeightOverride(50.f);
+				ButtonBox->SetHeightOverride(65.f);
 				ButtonBox->SetWidthOverride(200.f);
 
 				USizeBoxSlot* ButtonBoxSlot = Cast<USizeBoxSlot>(ButtonBox->AddChild(CreatedTabButton));

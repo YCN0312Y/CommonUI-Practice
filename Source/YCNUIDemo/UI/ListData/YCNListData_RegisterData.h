@@ -36,20 +36,28 @@ public:
 	FOnSettingsValueChanged OnSettingValueChanged;
 
 private:
+	//初始化控制设置
+	void InitControllerList();
+
+	void InitKeyboardMouseList();
+
 	//初始化游戏设置
 	void InitGameSettingsList();
 
 	//初始化音频设置
 	void InitAudioList();
 
-	//初始化视频设置
-	void InitVideoList();
+	//初始化显示设置
+	void InitDisplayList();
 
-	//初始化控制设置
-	void InitControlList();
+	//初始化画质
+	void InitHDList();
 
 	//初始化帮助设置
 	void InitAssistList();
+
+	//初始化帮助设置
+	void InitQuitList();
 
 	//设置数据字符串
 	FText SetDataText(const FString& InDaraString);
