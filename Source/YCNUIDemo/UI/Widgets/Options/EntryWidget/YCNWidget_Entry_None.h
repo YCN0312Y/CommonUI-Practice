@@ -23,6 +23,8 @@ protected:
 
 	virtual void NativeOnEntryReleased() override;
 
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)override;
+
 public:
 	// 从当前设置重新读取并显示选择文本。
 	virtual void RefreshEntryData()override;

@@ -10,6 +10,7 @@
 class UYCNWidget_ButtonBase;
 class UYCNWidget_RotatorBase;
 class UYCNListData_String;
+class UCommonVisibilitySwitcher;
 
 UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
 class YCNUIDEMO_API UYCNWidget_Entry_StringSwitch : public UYCNWidget_EntryBase
@@ -36,6 +37,10 @@ private:
 	/*
 	* BindWidget--------------------
 	*/
+	//切换器
+	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<UCommonVisibilitySwitcher>CommonSwitcher_Disable;
+
 	//上一个
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<UYCNWidget_ButtonBase>CommonButton_Previous;
@@ -50,7 +55,6 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<UYCNListData_String>OwningValueData;
-
 private:
 	//点击上一个
 	void OnClick_Previous();
@@ -59,4 +63,7 @@ private:
 	void OnClick_Next();
 
 	void SwitchText(int32 InIndex);
+
+	//根据禁用状态切换样式
+	void ToggleStyleByDisabled();
 };

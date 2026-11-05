@@ -16,6 +16,7 @@
 #include "ICommonInputModule.h"
 #include "Components/Border.h"
 #include "YCNUIDemo/Msic/YCNDataType.h"
+#include "YCNUIDemo/Settings/YCNGameUserSettings.h"
 
 #include "YCNUIDemo/DebugHelper/YCNDebugHelper.h"
 
@@ -37,7 +38,7 @@ void UYCNWidget_Options::NativeOnInitialized()
 
 	if (IsValid(TabList_Tab))
 	{
-		TabList_Tab->OnTabSelected.AddDynamic(this, &UYCNWidget_Options::OnTabSelected_Tab);
+		TabList_Tab->OnTabSelected.AddDynamic(this, &UYCNWidget_Options::OnTabSelected);
 	}
 	if (IsValid(ListView_SubTab))
 	{
@@ -117,6 +118,20 @@ void UYCNWidget_Options::NativeOnDeactivated()
 	Super::NativeOnDeactivated();
 }
 
+bool UYCNWidget_Options::NativeOnHandleBackAction()
+{
+	if (bLeaveConfirmationOpen) return true;
+
+	UYCNGameUserSettings* Settings = UYCNGameUserSettings::Get();
+	if (!Settings || !Settings->HasPendingQualityChanges())
+	{
+		return Super::NativeOnHandleBackAction();
+	}
+
+	ConfirmQualityBeforeLeaving(NAME_None);
+	return true; // 本次返回已处理，设置页先保持打开
+}
+
 void UYCNWidget_Options::OnClicked_Reset()
 {
 	if (!IsValid(OwningRegisterData) || !IsValid(TabList_Tab)) return;
@@ -167,44 +182,30 @@ void UYCNWidget_Options::OnClicked_Reset()
 
 void UYCNWidget_Options::OnTabSelected(FName TabID)
 {
-	if (!IsValid(ListView_SubTab))return;
+	if (bRestoringTab || TabID.IsNone()) return;
 
-	AddResetAction(TabID);
-
-	UYCNListData_Tab* SelectedTab = nullptr;
-
-	if (IsValid(OwningRegisterData) && !TabID.IsNone())
+	if (DisplayedTabID.IsNone())
 	{
-		SelectedTab = OwningRegisterData->GetDataByDataID(TabID);
-	}
-
-	ListView_SubTab->ClearSelection();
-
-	if (!IsValid(SelectedTab))
-	{
-		ListView_SubTab->ClearListItems();
+		ShowTabContent(TabID);
 		return;
 	}
 
-	ListView_SubTab->SetListItems(GetTabAllChildData(SelectedTab, TabID));
+	if (TabID == DisplayedTabID) return;
 
-	if (IsValid(SelectedTab))
+	UYCNGameUserSettings* Settings = UYCNGameUserSettings::Get();
+	if (!bLeaveConfirmationOpen && (!Settings || !Settings->HasPendingQualityChanges()))
 	{
-		//更新详情面板
-		UpdateDetails(SelectedTab);
+		ShowTabContent(TabID);
+		return;
 	}
-	
-	if (!ListView_SubTab->GetListItems().IsEmpty())
-	{
-		ListView_SubTab->SetSelectedIndex(0);
-		ListView_SubTab->NavigateToIndex(0);
-	}
-	ListView_SubTab->ScrollToTop();
-}
 
-void UYCNWidget_Options::OnTabSelected_Tab(FName TabId)
-{
-	OnTabSelected(TabId);
+	TGuardValue<bool> Guard(bRestoringTab, true);
+	TabList_Tab->SelectTabByID(DisplayedTabID, true);
+
+	if (!bLeaveConfirmationOpen)
+	{
+		ConfirmQualityBeforeLeaving(TabID);
+	}
 }
 
 UYCNListData_RegisterData* UYCNWidget_Options::InitOwningRegisterData()
@@ -405,4 +406,84 @@ FEventReply UYCNWidget_Options::OnDropdownBlockerMouseButtonDown(FGeometry MyGeo
 
 	// 消费这次鼠标按下，不继续执行底层页面操作
 	return FEventReply(true);
+}
+
+void UYCNWidget_Options::ShowTabContent(FName TabID)
+{
+	if (!IsValid(ListView_SubTab))return;
+
+	DisplayedTabID = TabID;
+
+	AddResetAction(TabID);
+
+	UYCNListData_Tab* SelectedTab = nullptr;
+
+	if (IsValid(OwningRegisterData) && !TabID.IsNone())
+	{
+		SelectedTab = OwningRegisterData->GetDataByDataID(TabID);
+	}
+
+	ListView_SubTab->ClearSelection();
+
+	if (!IsValid(SelectedTab))
+	{
+		ListView_SubTab->ClearListItems();
+		return;
+	}
+
+	ListView_SubTab->SetListItems(GetTabAllChildData(SelectedTab, TabID));
+
+	if (IsValid(SelectedTab))
+	{
+		//更新详情面板
+		UpdateDetails(SelectedTab);
+	}
+
+	if (!ListView_SubTab->GetListItems().IsEmpty())
+	{
+		ListView_SubTab->SetSelectedIndex(0);
+		ListView_SubTab->NavigateToIndex(0);
+	}
+	ListView_SubTab->ScrollToTop();
+}
+
+void UYCNWidget_Options::ConfirmQualityBeforeLeaving(FName TargetTabID)
+{
+	if (bLeaveConfirmationOpen) return;
+
+	UYCNWidgetManagerSubsystem* Manager = UYCNWidgetManagerSubsystem::Get(this);
+	if (!Manager) return;
+
+	bLeaveConfirmationOpen = true;
+
+	Manager->PushConfirmationToStack(
+		EConfirmationWindowsType::YesNO,
+		FText::FromString(TEXT("画质设置尚未应用，是否应用并继续？")),
+		[this, TargetTabID]
+		(EConfirmationWindowsButtonType ButtonType)
+		{
+			bLeaveConfirmationOpen = false;
+
+			if (ButtonType != EConfirmationWindowsButtonType::Yes) return;
+
+			UYCNGameUserSettings* Settings = UYCNGameUserSettings::Get();
+			if (!Settings) return;
+
+			if (Settings->HasPendingQualityChanges())
+			{
+				//没有待处理的画质就返回
+				if (!Settings->ApplyPendingQuality()) return;
+				OnSettingValueChanged();
+			}
+
+			if (TargetTabID.IsNone())
+			{
+				NativeOnHandleBackAction();
+			}
+
+			if (IsValid(TabList_Tab))
+			{
+				TabList_Tab->SelectTabByID(TargetTabID, true);
+			}
+		});
 }

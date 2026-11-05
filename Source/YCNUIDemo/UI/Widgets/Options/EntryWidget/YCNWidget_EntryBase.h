@@ -12,6 +12,7 @@ class UBorder;
 class USoundBase;
 class UCommonTextStyle;
 class UYCNGameUserSettings;
+class UYCNListData_Base;
 
 UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
 class YCNUIDEMO_API UYCNWidget_EntryBase : public UCommonUserWidget, public IUserObjectListEntry
@@ -69,6 +70,7 @@ protected:
 	//用户设置
 	UPROPERTY(Transient)
 	TWeakObjectPtr<UYCNGameUserSettings>UserSettings;
+
 private:
 	//高亮
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidgetOptional, AllowPrivateAccess = "true"))
@@ -77,6 +79,10 @@ private:
 	//显示文本
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<UCommonTextBlock>CommonText_DisplayText;
+
+	//持有的值数据
+	UPROPERTY(Transient)
+	TObjectPtr<UYCNListData_Base> OwningValueDataBase;
 
 public:
 	//点

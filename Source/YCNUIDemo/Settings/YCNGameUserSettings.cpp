@@ -4,10 +4,10 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "Misc/DefaultValueHelper.h"
 #include "HAL/IConsoleManager.h"
+#include "Kismet/KismetRenderingLibrary.h"
 
 UYCNGameUserSettings::UYCNGameUserSettings()
-    :CachedGameDifficulty(FText::FromString(TEXT("简单"))),
-    CachedGlobalVolume(100.f),
+    :CachedGlobalVolume(100.f),
     CachedMusicVolume(100.f),
     CachedSFXVolume(100.f),
     CachedVoiceVolume(100.f),
@@ -17,9 +17,13 @@ UYCNGameUserSettings::UYCNGameUserSettings()
     bVerticalSync(false),
     CachedDynamicFuzzy(FText::FromString(TEXT("自动"))),
     CachedSharpenAmount(5.f),
+    CachedVibrationStrength(10.f),
     bSubtitle(true),
+    CachedSRSharpness(4),
     CachedAAMethod(4),
-    CachedMSAACount(4)
+    CachedFrameGeneration(4),
+    bRayTracing(false),
+    CachedRayTracingLevel(FText::FromString(TEXT("弱")))
 {
 
 }
@@ -114,7 +118,7 @@ bool UYCNGameUserSettings::FindAvailableResolutionByText(const FText& InResoluti
     return false;
 }
 
-void UYCNGameUserSettings::SetConsoleVariable(const FString& InVariableString, float InValue)
+void UYCNGameUserSettings::SetConsoleVariableByGameSetting(const FString& InVariableString, float InValue)
 {
     if (IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(*InVariableString))
     {
@@ -122,39 +126,87 @@ void UYCNGameUserSettings::SetConsoleVariable(const FString& InVariableString, f
     }
 }
 
-void UYCNGameUserSettings::ApplyAntiAliasingSettings()
+void UYCNGameUserSettings::SetConsoleVariableByGameOverride(const FString& InVariableString, float InValue)
 {
-    // 验证配置文件加载进来的数值。
-    if (CachedAAMethod < 0 || CachedAAMethod > 4)
+    if (IConsoleVariable* CVar = IConsoleManager::Get().FindConsoleVariable(*InVariableString))
     {
-        CachedAAMethod = 4;
+        CVar->Set(InValue, ECVF_SetByGameOverride);
+    }
+}
+
+void UYCNGameUserSettings::SetBoolValue(const FText& InValue, bool& InbValue)
+{
+    if(InValue.EqualTo(FText::FromString(TEXT("开启"))))
+    {
+        InbValue = true;
+    }
+    else if (InValue.EqualTo(FText::FromString(TEXT("关闭"))))
+    {
+        InbValue = false;
     }
 
-    if (CachedMSAACount != 1 && CachedMSAACount != 2 && CachedMSAACount != 4 && CachedMSAACount != 8)
-    {
-        CachedMSAACount = 4;
-    }
+}
 
-    // 防止旧配置在不支持桌面 MSAA 的项目中继续使用 MSAA。
-    if (CachedAAMethod == 3)
-    {
-        const IConsoleVariable* ForwardShading = IConsoleManager::Get().FindConsoleVariable(TEXT("r.ForwardShading"));
+FText UYCNGameUserSettings::GetBoolValue(bool InbValue)
+{
+    return InbValue ? FText::FromString(TEXT("开启")) : FText::FromString(TEXT("关闭"));
+}
 
-        if (!ForwardShading || ForwardShading->GetInt() == 0)
-        {
-            CachedAAMethod = 4;
-        }
-    }
-
-    if (IConsoleVariable* SampleCount = IConsoleManager::Get().FindConsoleVariable(TEXT("r.MSAACount")))
+int32 UYCNGameUserSettings::SetIntValue(const FText& InValue)
+{
+    int32 CurrentValue;
+    if (InValue.EqualTo(FText::FromString(TEXT("低"))))
     {
-        SampleCount->Set(CachedMSAACount, ECVF_SetByGameSetting);
+        CurrentValue = 0;
     }
-
-    if (IConsoleVariable* Method = IConsoleManager::Get().FindConsoleVariable(TEXT("r.AntiAliasingMethod")))
+    else if(InValue.EqualTo(FText::FromString(TEXT("中"))))
     {
-        Method->Set(CachedAAMethod, ECVF_SetByGameSetting);
+        CurrentValue = 1;
     }
+    else if(InValue.EqualTo(FText::FromString(TEXT("高"))))
+    {
+        CurrentValue = 2;
+    }
+    else if(InValue.EqualTo(FText::FromString(TEXT("超高"))))
+    {
+        CurrentValue = 3;
+    }
+    else if(InValue.EqualTo(FText::FromString(TEXT("影视级"))))
+    {
+        CurrentValue = 4;
+    }
+    else
+    {
+        return 1;
+    }
+    return CurrentValue;
+}
+
+FText UYCNGameUserSettings::GetIntValue(int32 InValue)
+{
+    switch (InValue)
+    {
+    case 0:return FText::FromString(TEXT("低"));
+    case 1:return FText::FromString(TEXT("中"));
+    case 2:return FText::FromString(TEXT("高"));
+    case 3:return FText::FromString(TEXT("超高"));
+    case 4:return FText::FromString(TEXT("影视级"));
+    }
+    return FText::GetEmpty();
+}
+
+Scalability::FQualityLevels& UYCNGameUserSettings::EditPendingQuality()
+{
+    if (!PendingQuality.IsSet())
+    {
+        PendingQuality.Emplace(ScalabilityQuality);
+    }
+    return PendingQuality.GetValue();
+}
+
+const Scalability::FQualityLevels& UYCNGameUserSettings::GetDisplayedQuality() const
+{
+    return PendingQuality.IsSet() ? PendingQuality.GetValue() : ScalabilityQuality;
 }
 
 //获取可用分辨率
@@ -209,7 +261,37 @@ FText UYCNGameUserSettings::GetResolutionText(const FIntPoint& InResolution)
     return FText::FromString(FString::Printf(TEXT("%dx%d"), InResolution.X, InResolution.Y));
 }
 
-//设置缓存显示模式
+//全景光线追踪
+void UYCNGameUserSettings::ApplyPathTracingSetting()
+{
+    UKismetRenderingLibrary::EnablePathTracing(bRayTracing);
+}
+
+bool UYCNGameUserSettings::ApplyPendingQuality()
+{
+    if (!PendingQuality.IsSet()) return false;
+
+    //将未处理的画质设置 赋值
+    ScalabilityQuality = PendingQuality.GetValue();
+    PendingQuality.Reset();
+
+    ApplyNonResolutionSettings();
+    SaveSettings();
+    return true;
+}
+
+void UYCNGameUserSettings::ResetPendingQuality()
+{
+    PendingQuality.Reset();
+}
+
+bool UYCNGameUserSettings::HasPendingQualityChanges() const
+{
+    //待处理画质有值 而且值 != 整套画质设置
+    return PendingQuality.IsSet() && PendingQuality.GetValue() != ScalabilityQuality;
+}
+
+//设置显示模式
 void UYCNGameUserSettings::SetCachedDisplayMode(const FText& InCachedDisplayMode)
 {
     EWindowMode::Type NewMode;
@@ -249,7 +331,7 @@ void UYCNGameUserSettings::SetCachedDisplayMode(const FText& InCachedDisplayMode
     ApplyResolutionSettings(false);
 }
 
-//获取缓存显示模式
+//获取显示模式
 FText UYCNGameUserSettings::GetCahcedDisplayMode()
 {
     switch (GetFullscreenMode())
@@ -265,7 +347,7 @@ FText UYCNGameUserSettings::GetCahcedDisplayMode()
     }
 }
 
-//设置缓存屏幕宽高比
+//设置屏幕宽高比
 void UYCNGameUserSettings::SetCachedScreenRatio(const FText& InCachedScreenRatio)
 {
     if (!IsSupportedScreenRatio(InCachedScreenRatio)) return;
@@ -287,7 +369,7 @@ void UYCNGameUserSettings::SetCachedScreenRatio(const FText& InCachedScreenRatio
     ApplyResolutionSettings(false);
 }
 
-//获取缓存屏幕宽高比
+//获取屏幕宽高比
 FText UYCNGameUserSettings::GetCachedScreenRatio()
 {
     if (!IsSupportedScreenRatio(CachedScreenRatio))
@@ -298,7 +380,7 @@ FText UYCNGameUserSettings::GetCachedScreenRatio()
     return CachedScreenRatio;
 }
 
-//设置缓存屏幕分辨率
+//设置屏幕分辨率
 void UYCNGameUserSettings::SetCachedScreenResolution(const FText& InCachedScreenResolution)
 {
     FIntPoint TargetResolution = FIntPoint::ZeroValue;
@@ -312,7 +394,7 @@ void UYCNGameUserSettings::SetCachedScreenResolution(const FText& InCachedScreen
     ApplyResolutionSettings(false);
 }
 
-//获取缓存屏幕分辨率
+//获取屏幕分辨率
 FText UYCNGameUserSettings::GetCachedScreenResolution()
 {
     if (!CachedScreenResolution.IsEmpty())
@@ -352,19 +434,12 @@ FText UYCNGameUserSettings::GetCachedFrameRateLimit()
 
 void UYCNGameUserSettings::SetVerticalSync(const FText& InVerticalSync)
 {
-    if (InVerticalSync.EqualTo(FText::FromString(TEXT("开启"))))
-    {
-        bVerticalSync = true;
-    }
-    else if (InVerticalSync.EqualTo(FText::FromString(TEXT("关闭"))))
-    {
-        bVerticalSync = false;
-    }
+    SetBoolValue(InVerticalSync, bVerticalSync);
 }
 
 FText UYCNGameUserSettings::GetVerticalSync()
 {
-    return bVerticalSync ? FText::FromString(TEXT("开启")) : FText::FromString(TEXT("关闭"));
+    return GetBoolValue(bVerticalSync);
 }
 
 void UYCNGameUserSettings::SetCachedDynamicFuzzy(const FText& InCachedDynamicFuzzy)
@@ -395,7 +470,7 @@ void UYCNGameUserSettings::SetCachedDynamicFuzzy(const FText& InCachedDynamicFuz
         return;
     }
 
-    SetConsoleVariable(TEXT("r.MotionBlur.Amount"), Amount);
+    SetConsoleVariableByGameSetting(TEXT("r.MotionBlur.Amount"), Amount);
 }
 
 FText UYCNGameUserSettings::GetCachedDynamicFuzzy()
@@ -411,7 +486,7 @@ void UYCNGameUserSettings::SetCachedSharpenAmount(float InCachedSharpenAmount)
 
     const float EngineSharpenAmount = CachedSharpenAmount / 10.0f;
 
-    SetConsoleVariable(TEXT("r.Tonemapper.Sharpen"), EngineSharpenAmount);
+    SetConsoleVariableByGameSetting(TEXT("r.Tonemapper.Sharpen"), EngineSharpenAmount);
 }
 
 float UYCNGameUserSettings::GetCachedSharpenAmount() const
@@ -419,81 +494,38 @@ float UYCNGameUserSettings::GetCachedSharpenAmount() const
     return CachedSharpenAmount;
 }
 
-void UYCNGameUserSettings::SetbSubtitle(const FText& InSubtitle)
+void UYCNGameUserSettings::SetbSubtitle(const FText& InValue)
 {
-    if (InSubtitle.EqualTo(FText::FromString(TEXT("开启"))))
-    {
-        bSubtitle = true;
-    }
-    else if (InSubtitle.EqualTo(FText::FromString(TEXT("关闭"))))
-    {
-        bSubtitle = false;
-    }
+    SetBoolValue(InValue, bSubtitle);
 }
 
-FText UYCNGameUserSettings::GetbSubtitle() const
+FText UYCNGameUserSettings::GetbSubtitle()
 {
-    return bSubtitle ? FText::FromString(TEXT("开启")) : FText::FromString(TEXT("关闭"));
-}
-
-void UYCNGameUserSettings::SetRenderResolutionPercent(float InValue)
-{
-    if (!FMath::IsFinite(InValue)) return;
-    
-    const float ClampedValue = FMath::Clamp(InValue, 25.0f, 100.0f);
-    const float ResolutionPercent = static_cast<float>(FMath::RoundToInt(ClampedValue));
-    SetResolutionScaleValueEx(ResolutionPercent);
-    ApplyNonResolutionSettings();
-}
-
-float UYCNGameUserSettings::GetRenderResolutionPercent() const
-{
-    float NormalizedValue = 0.0f;
-    float CurrentPercent = 100.0f;
-    float MinPercent = 0.0f;
-    float MaxPercent = 100.0f;
-
-    GetResolutionScaleInformationEx(NormalizedValue, CurrentPercent, MinPercent, MaxPercent);
-
-    return CurrentPercent;
+    return GetBoolValue(bSubtitle);
 }
 
 void UYCNGameUserSettings::SetCachedAAMethod(const FText& InValue)
 {
-    int32 NewMethod;
-
     if (InValue.EqualTo(FText::FromString(TEXT("FXAA"))))
     {
-        NewMethod = 1;
+        CachedAAMethod = 1;
     }
     else if (InValue.EqualTo(FText::FromString(TEXT("TAA"))))
     {
-        NewMethod = 2;
+        CachedAAMethod = 2;
     }
     else if (InValue.EqualTo(FText::FromString(TEXT("MSAA"))))
     {
-        NewMethod = 3;
+        CachedAAMethod = 3;
     }
     else if (InValue.EqualTo(FText::FromString(TEXT("TSR"))))
     {
-        NewMethod = 4;
+        CachedAAMethod = 4;
     }
     else
     {
         return;
     }
-
-    if (NewMethod == 3)
-    {
-        const IConsoleVariable* ForwardShading = IConsoleManager::Get().FindConsoleVariable(TEXT("r.ForwardShading"));
-
-        if (!ForwardShading || ForwardShading->GetInt() == 0) return;
-        
-    }
-
-    CachedAAMethod = NewMethod;
-
-    ApplyAntiAliasingSettings();
 }
 
 FText UYCNGameUserSettings::GetCachedAAMethod() const
@@ -509,35 +541,35 @@ FText UYCNGameUserSettings::GetCachedAAMethod() const
     }
 }
 
-void UYCNGameUserSettings::SetFrameGeneration(const FText& InValue)
+void UYCNGameUserSettings::SetCachedFrameGeneration(const FText& InValue)
 {
     if (InValue.EqualTo(FText::FromString(TEXT("1X"))))
     {
-        CachedMSAACount = 1;
+        CachedFrameGeneration = 1;
     }
     else if (InValue.EqualTo(FText::FromString(TEXT("2X"))))
     {
-        CachedMSAACount = 2;
+        CachedFrameGeneration = 2;
     }
     else if (InValue.EqualTo(FText::FromString(TEXT("4X"))))
     {
-        CachedMSAACount = 4;
+        CachedFrameGeneration = 4;
     }
     else if (InValue.EqualTo(FText::FromString(TEXT("8X"))))
     {
-        CachedMSAACount = 8;
+        CachedFrameGeneration = 8;
     }
     else
     {
         return;
     }
 
-    ApplyAntiAliasingSettings();
+    SetConsoleVariableByGameOverride(TEXT("r.MSAACount"), CachedFrameGeneration);
 }
 
-FText UYCNGameUserSettings::GetFrameGeneration() const
+FText UYCNGameUserSettings::GetCachedFrameGeneration() const
 {
-    switch (CachedMSAACount)
+    switch (CachedFrameGeneration)
     {
     case 1: return FText::FromString(TEXT("1X"));
     case 2: return FText::FromString(TEXT("2X"));
@@ -545,4 +577,196 @@ FText UYCNGameUserSettings::GetFrameGeneration() const
     case 8: return FText::FromString(TEXT("8X"));
     default: return FText::FromString(TEXT("4X"));
     }
+}
+
+void UYCNGameUserSettings::SetbRayTracing(const FText& InValue)
+{
+    SetBoolValue(InValue, bRayTracing);
+
+    if (!bRayTracing)
+    {
+        SetCachedRayTracingLevel(FText::FromString(TEXT("弱")));
+    }
+
+    //1、如果真的要打开全景光线追踪就取消注释，并且在 玩家控制器 的 OnPossess 中调用 ApplyPathTracingSetting
+    //2、需要在游戏设置中打开 Support Hardware Ray Tracing
+    //ApplyPathTracingSetting();
+}
+
+FText UYCNGameUserSettings::GetbRayTracing()
+{
+    return GetBoolValue(bRayTracing);
+}
+
+//设置画质等级
+void UYCNGameUserSettings::SetOverallScalabilityLevelOverride(const FText& InValue)
+{
+    const int32 Level = SetIntValue(InValue);
+    if (Level == INDEX_NONE) return;
+
+    EditPendingQuality().SetFromSingleQualityLevel(Level);
+}
+
+//获取画质等级
+FText UYCNGameUserSettings::GetOverallScalabilityLevelOverride()
+{
+    const Scalability::FQualityLevels& Quality = GetDisplayedQuality();
+    const int32 Level = Quality.ViewDistanceQuality;
+
+    const bool bSameLevel =
+        Quality.AntiAliasingQuality == Level &&
+        Quality.PostProcessQuality == Level &&
+        Quality.ShadowQuality == Level &&
+        Quality.TextureQuality == Level &&
+        Quality.EffectsQuality == Level &&
+        Quality.FoliageQuality == Level &&
+        Quality.GlobalIlluminationQuality == Level &&
+        Quality.ReflectionQuality == Level &&
+        Quality.ShadingQuality == Level;
+
+    return bSameLevel
+        ? GetIntValue(Level)
+        : FText::FromString(TEXT("自定义"));
+}
+
+//设置视野距离
+void UYCNGameUserSettings::SetViewDistanceQualityOverride(const FText& InValue)
+{
+    const int32 Level = SetIntValue(InValue);
+    if (Level == INDEX_NONE) return;
+
+    EditPendingQuality().SetViewDistanceQuality(Level);
+}
+
+//获取视野距离
+FText UYCNGameUserSettings::GetViewDistanceQualityOverride()
+{
+    return GetIntValue(GetDisplayedQuality().ViewDistanceQuality);
+}
+
+//设置抗锯齿
+void UYCNGameUserSettings::SetAntiAliasingQualityOverride(const FText& InValue)
+{
+    const int32 Level = SetIntValue(InValue);
+    if (Level == INDEX_NONE) return;
+    EditPendingQuality().SetAntiAliasingQuality(Level);
+}
+
+//获取抗锯齿
+FText UYCNGameUserSettings::GetAntiAliasingQualityOverride()
+{
+    return GetIntValue(GetDisplayedQuality().AntiAliasingQuality);
+}
+
+//设置后期处理
+void UYCNGameUserSettings::SetPostProcessingQualityOverride(const FText& InValue)
+{
+    const int32 Level = SetIntValue(InValue);
+    if (Level == INDEX_NONE) return;
+    EditPendingQuality().SetPostProcessQuality(Level);
+}
+
+//获取后期处理
+FText UYCNGameUserSettings::GetPostProcessingQualityOverride()
+{
+    return GetIntValue(GetDisplayedQuality().PostProcessQuality);
+}
+
+//设置阴影质量
+void UYCNGameUserSettings::SetShadowQualityOverride(const FText& InValue)
+{
+    const int32 Level = SetIntValue(InValue);
+    if (Level == INDEX_NONE) return;
+    EditPendingQuality().SetShadowQuality(Level);
+}
+
+//获取阴影质量
+FText UYCNGameUserSettings::GetShadowQualityOverride()
+{
+    return GetIntValue(GetDisplayedQuality().ShadowQuality);
+}
+
+//设置贴图质量
+void UYCNGameUserSettings::SetTextureQualityOverride(const FText& InValue)
+{
+    const int32 Level = SetIntValue(InValue);
+    if (Level == INDEX_NONE) return;
+    EditPendingQuality().SetTextureQuality(Level);
+}
+
+//获取贴图质量
+FText UYCNGameUserSettings::GetTextureQualityOverride()
+{
+    return GetIntValue(GetDisplayedQuality().TextureQuality);
+}
+
+//设置特效质量
+void UYCNGameUserSettings::SetVisualEffectQualityOverride(const FText& InValue)
+{
+    const int32 Level = SetIntValue(InValue);
+    if (Level == INDEX_NONE) return;
+
+    EditPendingQuality().SetEffectsQuality(Level);
+}
+
+//获取特效质量
+FText UYCNGameUserSettings::GetVisualEffectQualityOverride()
+{
+    return GetIntValue(GetDisplayedQuality().EffectsQuality);
+}
+
+//设置植被质量
+void UYCNGameUserSettings::SetFoliageQualityOverride(const FText& InValue)
+{
+    const int32 Level = SetIntValue(InValue);
+    if (Level == INDEX_NONE) return;
+    EditPendingQuality().SetFoliageQuality(Level);
+}
+
+//获取植被质量
+FText UYCNGameUserSettings::GetFoliageQualityOverride()
+{
+    return GetIntValue(GetDisplayedQuality().FoliageQuality);
+}
+
+//设置全局光照
+void UYCNGameUserSettings::SetGlobalIlluminationQualityOverride(const FText& InValue)
+{
+    const int32 Level = SetIntValue(InValue);
+    if (Level == INDEX_NONE) return;
+    EditPendingQuality().SetGlobalIlluminationQuality(Level);
+}
+
+//获取全局光照
+FText UYCNGameUserSettings::GetGlobalIlluminationQualityOverride()
+{
+    return GetIntValue(GetDisplayedQuality().GlobalIlluminationQuality);
+}
+
+//设置反射质量
+void UYCNGameUserSettings::SetReflectionQualityOverride(const FText& InValue)
+{
+    const int32 Level = SetIntValue(InValue);
+    if (Level == INDEX_NONE) return;
+    EditPendingQuality().SetReflectionQuality(Level);
+}
+
+//获取反射质量
+FText UYCNGameUserSettings::GetReflectionQualityOverride()
+{
+    return GetIntValue(GetDisplayedQuality().ReflectionQuality);
+}
+
+//设置着色质量
+void UYCNGameUserSettings::SetShadingQualityOverride(const FText& InValue)
+{
+    const int32 Level = SetIntValue(InValue);
+    if (Level == INDEX_NONE) return;
+    EditPendingQuality().SetShadingQuality(Level);
+}
+
+//获取着色质量
+FText UYCNGameUserSettings::GetShadingQualityOverride()
+{
+    return GetIntValue(GetDisplayedQuality().ShadingQuality);
 }

@@ -3,6 +3,8 @@
 #include "YCNUIDemo/FunctionLibrary/YCNFunctionLibrary.h"
 #include "YCNUIDemo/Settings/YCNDeveloperSettings.h"
 #include "GameplayTagContainer.h"
+#include "YCNUIDemo/DataAsset/YCNWidgetDataAsset.h"
+#include "Engine/AssetManager.h"
 
 TSoftClassPtr<UYCNWidget_ActivatableWidgetBase> UYCNFunctionLibrary::GetSoftWidgetByTag(FGameplayTag InWidgetTag)
 {
@@ -26,4 +28,15 @@ TSoftClassPtr<UYCNWidget_MainStack> UYCNFunctionLibrary::GetMainStackWidget()
 	}
 
 	return TSoftClassPtr<UYCNWidget_MainStack>();
+}
+
+UTexture2D* UYCNFunctionLibrary::GetAssetImageById(const FName& InDataID)
+{
+	if (InDataID.IsNone()) return nullptr;
+
+	const UYCNDeveloperSettings* Settings = GetDefault<UYCNDeveloperSettings>();
+	UYCNWidgetDataAsset* DataAsset = Settings->YCNDataAsset.LoadSynchronous();
+	if (!DataAsset) return nullptr;
+
+	return DataAsset->FindImageByDataID(InDataID).LoadSynchronous();
 }

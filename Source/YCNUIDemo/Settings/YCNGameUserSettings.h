@@ -21,10 +21,6 @@ protected:
 	virtual void ApplyNonResolutionSettings() override;
 
 private:
-	//游戏难度
-	UPROPERTY(Config)
-	FText CachedGameDifficulty;
-
 	//全局音量
 	UPROPERTY(Config)
 	float CachedGlobalVolume;
@@ -65,9 +61,17 @@ private:
 	UPROPERTY(Config)
 	float CachedSharpenAmount;
 
+	//振动强度
+	UPROPERTY(Config)
+	float CachedVibrationStrength;
+
 	//字幕
 	UPROPERTY(Config)
 	bool bSubtitle;
+
+	//超采样清晰度
+	UPROPERTY(Config)
+	int32 CachedSRSharpness;
 
 	//超分辨率采样
 	UPROPERTY(Config)
@@ -75,7 +79,18 @@ private:
 
 	//帧生成
 	UPROPERTY(Config)
-	int32 CachedMSAACount;
+	int32 CachedFrameGeneration;
+
+	//全景光线追踪
+	UPROPERTY(Config)
+	bool bRayTracing;
+
+	//全景光线追踪等级
+	UPROPERTY(Config)
+	FText CachedRayTracingLevel;
+
+	//待处理画质
+	TOptional<Scalability::FQualityLevels> PendingQuality;
 
 private:
 	//获取最大分辨率
@@ -90,10 +105,27 @@ private:
 	//在可用分辨率列表里查找文本对应的分辨率
 	bool FindAvailableResolutionByText(const FText& InResolutionText, FIntPoint& OutResolution) const;
 
-	//设置控制台变量
-	void SetConsoleVariable(const FString& InVariableString, float InValue);
+	//设置控制台变量 GameSetting
+	void SetConsoleVariableByGameSetting(const FString& InVariableString, float InValue);
 
-	void ApplyAntiAliasingSettings();
+	//设置控制台变量 GameOverride
+	void SetConsoleVariableByGameOverride(const FString& InVariableString, float InValue);
+
+	//设置bool值字符串
+	void SetBoolValue(const FText& InValue, bool& InbValue);
+
+	//获取bool值字符串
+	FText GetBoolValue(bool InbValue);
+
+	int32 SetIntValue(const FText& InValue);
+
+	FText GetIntValue(int32 InValue);
+
+	//编辑待处理画质
+	Scalability::FQualityLevels& EditPendingQuality();
+
+	//获取显示质量
+	const Scalability::FQualityLevels& GetDisplayedQuality() const;
 
 public:
 	//获取最大分辨率字符串
@@ -105,11 +137,21 @@ public:
 	//把分辨率转成显示文本（格式：1920x1080）
 	static FText GetResolutionText(const FIntPoint& InResolution);
 
+	//应用路径追踪设置
+	UFUNCTION(BlueprintCallable, Category = "YCN User Settings")
+	void ApplyPathTracingSetting();
+
+	//应用待处理画质
+	bool ApplyPendingQuality();
+
+	//清空待处理质量列表
+	void ResetPendingQuality();
+
+	//否有待处理的值未处理就返回真
+	bool HasPendingQualityChanges() const;
 	/*
 	* 回调----------
 	*/
-	//游戏难度
-	MAKE_SET_GET(FText, CachedGameDifficulty);
 
 	//全局音量
 	MAKE_SET_GET(float, CachedGlobalVolume);
@@ -122,6 +164,15 @@ public:
 
 	//对话音量
 	MAKE_SET_GET(float, CachedVoiceVolume);
+
+	//振动强度
+	MAKE_SET_GET(float, CachedVibrationStrength);
+	
+	//超采样清晰度
+	MAKE_SET_GET(int32, CachedSRSharpness);
+
+	//全景光线追踪等级
+	MAKE_SET_GET(FText, CachedRayTracingLevel);
 
 	//显示模式
 	void SetCachedDisplayMode(const FText& InCachedDisplayMode);
@@ -151,19 +202,65 @@ public:
 	void SetCachedSharpenAmount(float InCachedSharpenAmount);
 	float GetCachedSharpenAmount()const;
 
-	//锐化强度
-	void SetbSubtitle(const FText& InSubtitle);
-	FText GetbSubtitle()const;
-
-	//超采样清晰度
-	void SetRenderResolutionPercent(float InValue);
-	float GetRenderResolutionPercent()const;
+	void SetbSubtitle(const FText& InValue);
+	FText GetbSubtitle();
 
 	//超分辨率采样
 	void SetCachedAAMethod(const FText& InValue);
 	FText GetCachedAAMethod() const;
 
 	//帧生成
-	void SetFrameGeneration(const FText& InValue);
-	FText GetFrameGeneration() const;
+	void SetCachedFrameGeneration(const FText& InValue);
+	FText GetCachedFrameGeneration() const;
+
+	//全景光线追踪
+	void SetbRayTracing(const FText& InValue);
+	FText GetbRayTracing();
+	bool IsRayTracingEnabled() const { return bRayTracing; }
+
+	//画质等级
+	void SetOverallScalabilityLevelOverride(const FText& InValue);
+	FText GetOverallScalabilityLevelOverride();
+
+	//视野距离
+	void SetViewDistanceQualityOverride(const FText& InValue);
+	FText GetViewDistanceQualityOverride();
+
+	//抗锯齿
+	void SetAntiAliasingQualityOverride(const FText& InValue);
+	FText GetAntiAliasingQualityOverride();
+
+	//后期处理
+	void SetPostProcessingQualityOverride(const FText& InValue);
+	FText GetPostProcessingQualityOverride();
+
+	//阴影质量
+	void SetShadowQualityOverride(const FText& InValue);
+	FText GetShadowQualityOverride();
+
+	//贴图质量
+	void SetTextureQualityOverride(const FText& InValue);
+	FText GetTextureQualityOverride();
+
+	//特效质量
+	void SetVisualEffectQualityOverride(const FText& InValue);
+	FText GetVisualEffectQualityOverride();
+
+	//植被质量
+	void SetFoliageQualityOverride(const FText& InValue);
+	FText GetFoliageQualityOverride();
+
+	//全局光照
+	void SetGlobalIlluminationQualityOverride(const FText& InValue);
+	FText GetGlobalIlluminationQualityOverride();
+
+	//反射质量
+	void SetReflectionQualityOverride(const FText& InValue);
+	FText GetReflectionQualityOverride();
+
+	//着色质量
+	void SetShadingQualityOverride(const FText& InValue);
+	FText GetShadingQualityOverride();
+
+
 };

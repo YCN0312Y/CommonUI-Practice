@@ -10,6 +10,7 @@
 class UYCNWidget_ActivatableWidgetBase;
 class UYCNWidget_MainStack;
 class UYCNListData_Tab;
+class UTexture2D;
 
 UCLASS()
 class YCNUIDEMO_API UYCNFunctionLibrary : public UBlueprintFunctionLibrary
@@ -23,4 +24,7 @@ public:
 	//获取主堆栈控件
 	UFUNCTION(BlueprintPure, Category = "YCNFunctionLibrary")
 	static TSoftClassPtr<UYCNWidget_MainStack>GetMainStackWidget();
+	//根据ID在数据资产中获取对应图标
+	UFUNCTION(BlueprintPure, Category = "YCNFunctionLibrary")
+	static UTexture2D* GetAssetImageById(const FName& InDataID);
 };

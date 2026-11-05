@@ -28,3 +28,13 @@ TSubclassOf<UYCNWidget_EntryBase> UYCNWidgetDataAsset::FindWidgetByListData(cons
 	}
 	return nullptr;
 }
+
+TSoftObjectPtr<UTexture2D> UYCNWidgetDataAsset::FindImageByDataID(const FName& InDataID)
+{
+	if (ImageList.Contains(InDataID))
+	{
+		return ImageList.FindRef(InDataID);
+	}
+
+	return nullptr;
+}

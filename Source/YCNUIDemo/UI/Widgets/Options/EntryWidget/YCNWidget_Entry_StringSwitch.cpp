@@ -4,6 +4,8 @@
 #include "YCNUIDemo/UI/ListData/YCNListData_String.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_ButtonBase.h"
 #include "YCNUIDemo/UI/Components/YCNWidget_RotatorBase.h"
+#include "CommonVisibilitySwitcher.h"
+#include "Components/Border.h"
 
 void UYCNWidget_Entry_StringSwitch::NativeOnInitialized()
 {
@@ -23,25 +25,18 @@ void UYCNWidget_Entry_StringSwitch::NativeOnListItemObjectSet(UObject* ListItemO
 {
     Super::NativeOnListItemObjectSet(ListItemObject);
 
-    bool bOwningValueData = false;
-    if (OwningValueData = Cast<UYCNListData_StringSwitch>(ListItemObject))
+    OwningValueData = Cast<UYCNListData_StringSwitch>(ListItemObject);
+
+    if (!OwningValueData)
     {
-        bOwningValueData = true;
-    }
-    else if (OwningValueData = Cast<UYCNListData_StringBool>(ListItemObject))
-    {
-        bOwningValueData = true;
+        OwningValueData = Cast<UYCNListData_StringBool>(ListItemObject);
     }
 
-    if (bOwningValueData)
+    if (IsValid(OwningValueData) && IsValid(CommonRotator_SelectedText))
     {
-        if (IsValid(OwningValueData) && IsValid(CommonRotator_SelectedText))
-        {
-            CommonRotator_SelectedText->PopulateTextLabels(OwningValueData->GetOptionList());
-            RefreshEntryData();
-        }
+        CommonRotator_SelectedText->PopulateTextLabels(OwningValueData->GetOptionList());
+        RefreshEntryData();
     }
-
 }
 
 void UYCNWidget_Entry_StringSwitch::SwitchItemStatus(bool bIsSwitch)
@@ -77,7 +72,7 @@ void UYCNWidget_Entry_StringSwitch::RefreshEntryData()
 {
     UpdatePointStatus();
     if (!IsValid(CommonRotator_SelectedText) || !IsValid(OwningValueData)) return;
-
+    ToggleStyleByDisabled();
     const TArray<FText>& AllOption = OwningValueData->GetOptionList();
     if (AllOption.IsEmpty()) return;
 
@@ -94,7 +89,11 @@ void UYCNWidget_Entry_StringSwitch::RefreshEntryData()
             return Option.EqualTo(CurrentValue); 
         });
 
-    //找不到对应项就退回第一项
+    if (FoundIndex == INDEX_NONE && OwningValueData->GetDataID() == FName(TEXT("OverallScalabilityLevel")))
+    {
+        CommonRotator_SelectedText->ShowUnlistedValue(CurrentValue);
+        return;
+    }
     CommonRotator_SelectedText->SetSelectedItem(FoundIndex != INDEX_NONE ? FoundIndex : 0);
     UE_LOG(LogTemp, Warning, TEXT("%s"), *CommonRotator_SelectedText->GetSelectedText().ToString());
 }
@@ -119,16 +118,15 @@ void UYCNWidget_Entry_StringSwitch::SwitchText(int32 InIndex)
 
     const int32 CurrentSelectedIndex = CommonRotator_SelectedText->GetSelectedIndex();
 
-    //计算预测索引
     const int32 Num = AllOption.Num();
-
-    int32 PredictiveSelectionIndex = (CurrentSelectedIndex + InIndex) % Num;
-
-    // 处理负数取模
-    if (PredictiveSelectionIndex < 0)
+    int32 PredictiveSelectionIndex;
+    if (CurrentSelectedIndex == INDEX_NONE)
     {
-        PredictiveSelectionIndex += Num;
-        
+        PredictiveSelectionIndex = InIndex > 0 ? 0 : Num - 1;
+    }
+    else
+    {
+        PredictiveSelectionIndex = (CurrentSelectedIndex + InIndex + Num) % Num;
     }
     if (OwningValueData->GetSettingBinding().TryWrite(AllOption[PredictiveSelectionIndex]))
     {
@@ -139,5 +137,20 @@ void UYCNWidget_Entry_StringSwitch::SwitchText(int32 InIndex)
         CommonRotator_SelectedText->SetSelectedItem(PredictiveSelectionIndex);
     }
     
+}
+
+void UYCNWidget_Entry_StringSwitch::ToggleStyleByDisabled()
+{
+    if (!IsValid(OwningValueData) || !IsValid(CommonSwitcher_Disable))return;
+    SetIsEnabled(OwningValueData->CanEditListData());
+    if (OwningValueData->CanEditListData())
+    {
+        
+        CommonSwitcher_Disable->SetActiveWidgetIndex(0);
+    }
+    else
+    {
+        CommonSwitcher_Disable->SetActiveWidgetIndex(1);
+    }
 }
 

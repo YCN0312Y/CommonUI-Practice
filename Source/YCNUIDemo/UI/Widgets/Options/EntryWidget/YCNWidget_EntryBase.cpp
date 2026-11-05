@@ -13,9 +13,10 @@ void UYCNWidget_EntryBase::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
 	IUserObjectListEntry::NativeOnListItemObjectSet(ListItemObject);
 
-	if (const UYCNListData_Base* Data = Cast<UYCNListData_Base>(ListItemObject))
+	OwningValueDataBase = Cast<UYCNListData_Base>(ListItemObject);
+	if (OwningValueDataBase)
 	{
-		SetEnrtyDisplayText(Data->GetDataDisplayText());
+		SetEnrtyDisplayText(OwningValueDataBase->GetDataDisplayText());
 	}
 	else
 	{
@@ -78,7 +79,9 @@ void UYCNWidget_EntryBase::UpdatePointStatus()
 {
 	if (!IsValid(Border_Point)) return;
 
-	Border_Point->SetVisibility(IsValueModified() ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
+	const bool bShowPoint = IsValid(OwningValueDataBase) && OwningValueDataBase->GetbIsShowModifyPoint() && IsValueModified();
+
+	Border_Point->SetVisibility(bShowPoint ? ESlateVisibility::SelfHitTestInvisible : ESlateVisibility::Collapsed);
 }
 
 void UYCNWidget_EntryBase::SetEnrtyDisplayText(const FText& InDisplayText)

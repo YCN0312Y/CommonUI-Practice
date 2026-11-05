@@ -23,7 +23,7 @@ class YCNUIDEMO_API UYCNWidget_Options : public UYCNWidget_ActivatableWidgetBase
 {
 	GENERATED_BODY()
 	
-public:
+protected:
 	//初始化
 	virtual void NativeOnInitialized()override;
 	//预构造
@@ -33,6 +33,7 @@ public:
 	//停用
 	virtual void NativeOnDeactivated() override;
 
+	virtual bool NativeOnHandleBackAction() override;
 private:
 	/*
 	* BindWidget Begin----------
@@ -73,15 +74,21 @@ private:
 
 	//添加重置操作
 	bool bResetActionAdded;
+
+	//显示的标签ID
+	FName DisplayedTabID = NAME_None;
+
+	//恢复标签
+	bool bRestoringTab = false;
+
+	//已打开确认弹窗
+	bool bLeaveConfirmationOpen = false;
 private:
 	//点击重置回调
 	void OnClicked_Reset();
 	
 	UFUNCTION()
 	void OnTabSelected(FName TabID);
-
-	UFUNCTION()
-	void OnTabSelected_Tab(FName TabId);
 
 	//初始化持有的注册数据
 	UYCNListData_RegisterData* InitOwningRegisterData();
@@ -110,4 +117,10 @@ private:
 
 	UFUNCTION()
 	FEventReply OnDropdownBlockerMouseButtonDown(FGeometry MyGeometry, const FPointerEvent& MouseEvent);
+
+	//显示标签内容
+	void ShowTabContent(FName TabID);
+
+	//确认离开前的质量
+	void ConfirmQualityBeforeLeaving(FName TargetTabID);
 };

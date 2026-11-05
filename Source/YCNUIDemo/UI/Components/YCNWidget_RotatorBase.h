@@ -14,5 +14,6 @@ class YCNUIDEMO_API UYCNWidget_RotatorBase : public UCommonRotator
 	GENERATED_BODY()
 	
 public:
+	void ShowUnlistedValue(const FText& Value);
 	void SetMyTextStyle(bool bIsSelected, TSubclassOf<UCommonTextStyle> InDefaultStyle, TSubclassOf<UCommonTextStyle> InSelectedStyle);
 };

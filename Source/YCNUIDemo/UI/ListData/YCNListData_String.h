@@ -73,4 +73,13 @@ class YCNUIDEMO_API UYCNListData_StringBool : public UYCNListData_String
 {
 	GENERATED_BODY()
 
+private:
+	const FString TrueString = TEXT("开启");
+	const FString FalseString = TEXT("关闭");
+
+public:
+	void AddOffAndNo();
+
+	FText GetTrueString()const;
+	FText GetFalseString()const;
 };

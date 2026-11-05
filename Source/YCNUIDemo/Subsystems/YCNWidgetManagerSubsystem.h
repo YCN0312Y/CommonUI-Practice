@@ -19,6 +19,8 @@ class YCNUIDEMO_API UYCNWidgetManagerSubsystem : public UGameInstanceSubsystem
 	GENERATED_BODY()
 
 public:
+	virtual void Deinitialize() override;
+
 	UFUNCTION(BlueprintPure, Category = "YCNWidgetManagerSubsystem", meta = (WorldContext = "WorldContextObject"))
 	static UYCNWidgetManagerSubsystem* Get(const UObject* WorldContextObject);
 	

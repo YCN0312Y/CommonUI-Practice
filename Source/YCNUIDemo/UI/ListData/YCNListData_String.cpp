@@ -16,3 +16,21 @@ void UYCNListData_String::AddDataToOptionsList(const FText& InOptionText)
 {
 	OptionList.Add(InOptionText);
 }
+
+void UYCNListData_StringBool::AddOffAndNo()
+{
+	OptionList.Reset();
+
+	OptionList.Add(FText::FromString(TrueString));
+	OptionList.Add(FText::FromString(FalseString));
+}
+
+FText UYCNListData_StringBool::GetTrueString() const
+{
+	return FText::FromString(TrueString);
+}
+
+FText UYCNListData_StringBool::GetFalseString() const
+{
+	return FText::FromString(FalseString);
+}

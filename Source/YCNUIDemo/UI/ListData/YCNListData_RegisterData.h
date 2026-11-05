@@ -5,12 +5,15 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "YCNUIDemo/Settings/YCNGameUserSettings.h"
+#include "YCNUIDemo/UI/ListData/YCNListData_Float.h"
+#include "YCNUIDemo/UI/ListData/YCNListData_String.h"
+#include "YCNUIDemo/Msic/YCNDataType.h"
 #include "YCNListData_RegisterData.generated.h"
 
 class UYCNListData_Base;
 class UYCNListData_Tab;
 class UYCNGameUserSettings;
-class UYCNListData_String;
+class UYCNListData_Text;
 
 UCLASS(Transient)
 class YCNUIDEMO_API UYCNListData_RegisterData : public UObject
@@ -27,11 +30,20 @@ private:
 	UPROPERTY(Transient)
 	TArray<UYCNListData_Tab*> AvailableDataList;
 
+	TArray<FText>GraphicsLevelArray =
+	{
+		SetDataText(TEXT("低")),
+		SetDataText(TEXT("中")),
+		SetDataText(TEXT("高")),
+		SetDataText(TEXT("超高")),
+		SetDataText(TEXT("影视级")),
+	};
+
 public:
 	//用户设置
 	TWeakObjectPtr<UYCNGameUserSettings>UserSettings;
 
-public:
+	//用户设置的值修改时回调
 	DECLARE_DELEGATE(FOnSettingsValueChanged)
 	FOnSettingsValueChanged OnSettingValueChanged;
 
@@ -39,10 +51,8 @@ private:
 	//初始化控制设置
 	void InitControllerList();
 
+	//初始化键盘与鼠标设置
 	void InitKeyboardMouseList();
-
-	//初始化游戏设置
-	void InitGameSettingsList();
 
 	//初始化音频设置
 	void InitAudioList();
@@ -65,12 +75,11 @@ private:
 	//获取最大分辨率值
 	FText GetMaxResolutionText();
 
-	//将可用的分辨率添加进选项列表
-	void AppendResolutionList(UYCNListData_String* InData);
+	TArray<FText> GetResolutionOptions() const;
 
 	//绑定值
 	template<typename TData, typename TGetter, typename TSetter>
-	void BindCachedValue(TData* InData, TGetter InGetter, TSetter InSetter)
+	void BindCachedValue(TData* InData, TGetter InGetter, TSetter InSetter, bool bSaveOnWrite = true)
 	{
 		if (!IsValid(InData) || !InGetter || !InSetter || !UserSettings.IsValid())return;
 
@@ -90,13 +99,16 @@ private:
                     return true;
                 }),
             FWriteDelegate::CreateLambda(
-                [this, InSetter](const TValue& InValue) -> bool
+                [this, InSetter, bSaveOnWrite](const TValue& InValue) -> bool
                 {
                     UYCNGameUserSettings* Settings = UserSettings.Get();
                     if (!Settings) return false;
 
-                    (Settings->*InSetter)(InValue);
-                    Settings->SaveSettings();
+					(Settings->*InSetter)(InValue);
+					if (bSaveOnWrite)
+					{
+						Settings->SaveSettings();
+					}
 
                     if (UYCNListData_RegisterData* Register = this)
                     {
@@ -107,6 +119,98 @@ private:
                 })
         );
 
+	}
+	//UYCNListData_Tab
+	void CreateTabData(UYCNListData_Tab* InData, FName InDataID, const FText& InDisplayText,
+		UYCNListData_Base* InParentData = nullptr);
+
+	//UYCNListData_Text
+	void CreateTextData(UYCNListData_Text* InData, FName InDataID, const FText& InDisplayText,
+		const FText& InDescriptionText, EConfirmationWindowsType InWindowType,
+		const FText& InMessage, TFunction<void(EConfirmationWindowsButtonType)>InFunction, UYCNListData_Base* InParentData);
+
+	//UYCNListData_String
+	template<typename TGetter, typename TSetter>
+	void CreateStringData(UYCNListData_String* InData, FName InDataID, const FText& InDisplayText,
+		const FText& InDescriptionText, const FText& InDisableText, const TArray<FText>& InOptionList,
+		const FText& InDefaultValue, TGetter InGetter, TSetter InSetter, UYCNListData_Base* InParentData,
+		bool bIsShowModifyPoint = true, TFunction<bool()> ConditionFunc = {}, bool bInitiallyEnabled = true)
+	{
+		if (!IsValid(InData) || !IsValid(InParentData) || InDataID.IsNone()) return;
+
+		for (const FText& Option : InOptionList)
+		{
+			InData->AddDataToOptionsList(Option);
+		}
+
+		RegisterValueData(InData, InDataID, InDisplayText, InDescriptionText, InDisableText,
+			InDefaultValue, InGetter, InSetter, InParentData, bIsShowModifyPoint, MoveTemp(ConditionFunc), bInitiallyEnabled);
+	}
+
+	//UYCNListData_StringSwitch
+	template<typename TGetter, typename TSetter>
+	void CreateStringSwitchData(UYCNListData_StringSwitch* InData, FName InDataID, const FText& InDisplayText,
+		const FText& InDescriptionText, const FText& InDisableText, const TArray<FText>& InOptionList,
+		const FText& InDefaultValue, TGetter InGetter, TSetter InSetter, UYCNListData_Base* InParentData,
+		bool bIsShowModifyPoint = true, TFunction<bool()> ConditionFunc = {}, bool bInitiallyEnabled = true)
+	{
+		CreateStringData(InData, InDataID, InDisplayText, InDescriptionText, InDisableText,
+			InOptionList, InDefaultValue, InGetter, InSetter, InParentData, bIsShowModifyPoint, MoveTemp(ConditionFunc), bInitiallyEnabled);
+	}
+
+	//UYCNListData_StringBool
+	template<typename TGetter, typename TSetter>
+	void CreateStringBoolData(UYCNListData_StringBool* InData, FName InDataID, const FText& InDisplayText,
+		const FText& InDescriptionText, const FText& InDisableText, bool bDefaultOn,
+		TGetter InGetter, TSetter InSetter, UYCNListData_Base* InParentData,
+		TFunction<bool()> ConditionFunc = {}, bool bInitiallyEnabled = true)
+	{
+		if (!IsValid(InData) || !IsValid(InParentData) || InDataID.IsNone()) return;
+
+		InData->AddOffAndNo();
+		RegisterValueData(InData, InDataID, InDisplayText, InDescriptionText, InDisableText,
+			bDefaultOn ? InData->GetTrueString() : InData->GetFalseString(),
+			InGetter, InSetter, InParentData, true, MoveTemp(ConditionFunc), bInitiallyEnabled);
+	}
+
+	//UYCNListData_Float
+	template<typename TGetter, typename TSetter>
+	void CreateFloatData(UYCNListData_Float* InData, FName InDataID, const FText& InDisplayText,
+		const FText& InDescriptionText, const FText& InDisableText, float InMinValue, float InMaxValue,
+		float InDefaultValue, TGetter InGetter, TSetter InSetter, UYCNListData_Base* InParentData,
+		TFunction<bool()> ConditionFunc = {}, bool bInitiallyEnabled = true)
+	{
+		if (!IsValid(InData) || !IsValid(InParentData) || InDataID.IsNone()) return;
+
+		InData->SetMinValue(InMinValue);
+		InData->SetMaxValue(InMaxValue);
+		RegisterValueData(InData, InDataID, InDisplayText, InDescriptionText, InDisableText,
+			InDefaultValue, InGetter, InSetter, InParentData, true, MoveTemp(ConditionFunc), bInitiallyEnabled);
+	}
+
+	//注册值数据
+	template<typename TData, typename TGetter, typename TSetter>
+	void RegisterValueData(TData* InData, FName InDataID, const FText& InDisplayText,
+		const FText& InDescriptionText, const FText& InDisableText,
+		const typename TData::FSettingBinding::TValueType& InDefaultValue,
+		TGetter InGetter, TSetter InSetter, UYCNListData_Base* InParentData, 
+		bool bIsShowModifyPoint, TFunction<bool()> ConditionFunc, bool bInitiallyEnabled)
+	{
+		InData->SetDataID(InDataID);
+		InData->SetDataDisplayText(InDisplayText);
+		InData->SetDataDescription(InDescriptionText);
+		InData->SetDataDisabledText(InDisableText);
+		InData->SetbDataDisabled(bInitiallyEnabled);
+		InData->GetSettingBinding().SetOwningDefaultValue(InDefaultValue);
+		InData->SetbIsShowModifyPoint(bIsShowModifyPoint);
+		if (ConditionFunc)
+		{
+			InData->AddCondition(MoveTemp(ConditionFunc));
+		}
+
+		const bool bSaveOnWrite = InParentData->GetDataID() != FName(TEXT("GraphicsDetail"));
+		BindCachedValue(InData, InGetter, InSetter, bSaveOnWrite);
+		InParentData->AddChildData(InData);
 	}
 
 public:

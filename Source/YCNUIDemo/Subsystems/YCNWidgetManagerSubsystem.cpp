@@ -10,6 +10,17 @@
 #include "Widgets/CommonActivatableWidgetContainer.h"
 #include "YCNUIDemo/UI/Widgets/Options/YCNWidget_DropdownOption.h"
 #include "YCNUIDemo/Msic/YCNDataType.h"
+#include "YCNUIDemo/Settings/YCNGameUserSettings.h"
+
+void UYCNWidgetManagerSubsystem::Deinitialize()
+{
+	if (UYCNGameUserSettings* Settings = UYCNGameUserSettings::Get())
+	{
+		Settings->ResetPendingQuality();
+	}
+
+	Super::Deinitialize();
+}
 
 UYCNWidgetManagerSubsystem* UYCNWidgetManagerSubsystem::Get(const UObject* WorldContextObject)
 {

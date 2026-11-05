@@ -9,6 +9,7 @@
 
 class UYCNWidget_ActivatableWidgetBase;
 class UYCNWidget_MainStack;
+class UYCNWidgetDataAsset;
 
 UCLASS(Config = Game, defaultconfig, meta = (DisplayName = "YCN Common UI Settings"))
 class YCNUIDEMO_API UYCNDeveloperSettings : public UDeveloperSettings
@@ -19,7 +20,12 @@ public:
 	//主堆栈控件
 	UPROPERTY(Config, EditAnywhere, Category = "Widgets")
 	TSoftClassPtr<UYCNWidget_MainStack>MainStackWidget;
+
 	//需要推送的软控件引用
 	UPROPERTY(Config, EditAnywhere, Category = "Widgets", meta = (ForceInlineRow, Categories = "YCN.Widget"))
 	TMap<FGameplayTag, TSoftClassPtr<UYCNWidget_ActivatableWidgetBase>>SoftWidgetRef;
+
+	//数据资产
+	UPROPERTY(Config, EditAnywhere, Category = "Widgets")
+	TSoftObjectPtr<UYCNWidgetDataAsset> YCNDataAsset;
 };
