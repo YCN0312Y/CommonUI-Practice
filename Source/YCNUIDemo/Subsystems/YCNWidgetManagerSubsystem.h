@@ -51,4 +51,6 @@ public:
 
 	void SetOwningMainStackBackground(bool bIsVisible);
 
+	UYCNWidget_MainStack* GetOwningMainStack()const;
+
 };

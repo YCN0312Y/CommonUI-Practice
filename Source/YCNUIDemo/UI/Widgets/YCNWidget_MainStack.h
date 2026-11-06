@@ -18,6 +18,7 @@ class YCNUIDEMO_API UYCNWidget_MainStack : public UCommonUserWidget
 private:
 	UPROPERTY(BlueprintReadOnly, meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<UBorder>Background;
+
 	UPROPERTY(Transient)
 	TMap<FGameplayTag, UCommonActivatableWidgetStack*>RegisterStackList;
 
@@ -30,4 +31,7 @@ public:
 	UCommonActivatableWidgetStack* FindWidgetByTag(const FGameplayTag& InStackTag);
 	//设置背景可见性
 	void SetBackgroundVisible(bool bIsVisible);
+
+	//设置堆栈的过渡时间
+	void SetStackTransitionDuration(UCommonActivatableWidgetStack* InStack, float InDuration);
 };

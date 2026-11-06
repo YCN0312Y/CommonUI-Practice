@@ -4,8 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "YCNUIDemo/UI/Widgets/YCNWidget_ActivatableWidgetBase.h"
-#include "Blueprint/IUserObjectListEntry.h"
 #include "Components/SlateWrapperTypes.h"
+#include "GameplayTagContainer.h"
 #include "YCNWidget_Options.generated.h"
 
 class UYCNWidget_TabListBase;
@@ -26,10 +26,13 @@ class YCNUIDEMO_API UYCNWidget_Options : public UYCNWidget_ActivatableWidgetBase
 protected:
 	//初始化
 	virtual void NativeOnInitialized()override;
+
 	//预构造
 	virtual void NativePreConstruct()override;
+
 	//激活
 	virtual void NativeOnActivated()override;
+
 	//停用
 	virtual void NativeOnDeactivated() override;
 
@@ -39,16 +42,23 @@ private:
 	* BindWidget Begin----------
 	*/
 	//主标签
-	UPROPERTY(BlueprintReadOnly, Category = "YCN Option Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UYCNWidget_TabListBase>TabList_Tab;
+
 	//子标签
-	UPROPERTY(BlueprintReadOnly, Category = "YCN Option Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UYCNWidget_ListViewBase>ListView_SubTab;
+
+	//控制器
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UYCNWidget_ListViewBase>ListView_Control;
+
 	//下拉框背景
-	UPROPERTY(BlueprintReadOnly, Category = "YCN Option Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UBorder>Border_DropdownBlocker;
+
 	//详情页
-	UPROPERTY(BlueprintReadOnly, Category = "YCN Option Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
+	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UYCNWidget_DetailsBase>DetailsBase_Details;
 	/*
 	* BindWidget End----------
@@ -108,8 +118,10 @@ private:
 	//更新详情页
 	void UpdateDetails(UYCNListData_Tab* InData);
 
+	//添加重置动作
 	void AddResetAction(const FName& InTabID);
 
+	//用户设置值修改回调
 	void OnSettingValueChanged();
 
 	//获取数据标签所有子数据
@@ -123,4 +135,8 @@ private:
 
 	//确认离开前的质量
 	void ConfirmQualityBeforeLeaving(FName TargetTabID);
+
+	void AddDataToList(FName TabID, UYCNWidget_ListViewBase* InList);
+
+	void SetStackTransitionDuration(const FGameplayTag& InStackTag, float InDuration);
 };

@@ -12,8 +12,10 @@
 
 class UYCNListData_Base;
 class UYCNListData_Tab;
+class UYCNListData_String;
 class UYCNGameUserSettings;
 class UYCNListData_Text;
+class UYCNListData_Image;
 
 UCLASS(Transient)
 class YCNUIDEMO_API UYCNListData_RegisterData : public UObject
@@ -22,9 +24,9 @@ class YCNUIDEMO_API UYCNListData_RegisterData : public UObject
 
 public:
 	//初始化数据列表
-	void InitDataList();
+	virtual void InitDataList();
 
-	UYCNListData_Tab* GetDataByDataID(const FName& InDataID);
+	virtual UYCNListData_Tab* GetDataByDataID(const FName& InDataID);
 
 private:
 	UPROPERTY(Transient)
@@ -128,6 +130,10 @@ private:
 	void CreateTextData(UYCNListData_Text* InData, FName InDataID, const FText& InDisplayText,
 		const FText& InDescriptionText, EConfirmationWindowsType InWindowType,
 		const FText& InMessage, TFunction<void(EConfirmationWindowsButtonType)>InFunction, UYCNListData_Base* InParentData);
+
+	//UYCNListData_Image
+	void CreateImageData(UYCNListData_Image* InData, FName InDataID, const FText& InDisplayText, const FText& InDescriptionText,
+		UTexture2D* InDataIcon, TFunction<void()> InFunction, UYCNListData_Base* InParentData);
 
 	//UYCNListData_String
 	template<typename TGetter, typename TSetter>

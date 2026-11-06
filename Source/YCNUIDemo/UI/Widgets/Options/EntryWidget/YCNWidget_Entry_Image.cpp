@@ -17,10 +17,8 @@ void UYCNWidget_Entry_Image::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 	if (IsValid(CommonImage_Icon) && IsValid(OwningValueData))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("1"));
 		if (OwningValueData->GetDataIcon())
 		{
-			UE_LOG(LogTemp, Warning, TEXT("2"));
 			CommonImage_Icon->SetBrushFromLazyTexture(OwningValueData->GetDataIcon());
 		}
 	}
@@ -38,7 +36,17 @@ void UYCNWidget_Entry_Image::NativeOnEntryReleased()
 
 FReply UYCNWidget_Entry_Image::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	return FReply::Handled();
+	if (InMouseEvent.GetEffectingButton() == EKeys::LeftMouseButton && IsValid(OwningValueData))
+	{
+		const TFunction<void()> Callback = OwningValueData->GetClickCallBack();
+
+		if (Callback)
+		{
+			Callback();
+			return FReply::Handled();
+		}
+	}
+	return Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
 }
 
 void UYCNWidget_Entry_Image::RefreshEntryData()

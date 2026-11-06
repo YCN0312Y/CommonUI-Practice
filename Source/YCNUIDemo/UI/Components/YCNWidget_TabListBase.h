@@ -11,6 +11,7 @@ class UCommonActionWidget;
 class UYCNWidget_ButtonBase;
 class UTexture2D;
 class UYCNListData_Tab;
+class UHorizontalBox;
 
 UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
 class YCNUIDEMO_API UYCNWidget_TabListBase : public UCommonTabListWidgetBase
@@ -28,9 +29,15 @@ private:
 	//上一个
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCommonActionWidget>CommonAction_Previous;
-	//标签容器
-	UPROPERTY(meta = (BindWidget))
+
+	//标签容器(竖向)
+	UPROPERTY(meta = (BindWidgetOptional))
 	TObjectPtr<UVerticalBox>VerticalBox_TabContainer;
+
+	//标签容器(横向)
+	UPROPERTY(meta = (BindWidgetOptional))
+	TObjectPtr<UHorizontalBox>HorizontalBox_TabContainer;
+
 	//下一个
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UCommonActionWidget>CommonAction_Next;
@@ -41,6 +48,10 @@ private:
 	//主标签图标
 	UPROPERTY(EditAnywhere, Category = "YCN Button")
 	TMap<FName, TSoftObjectPtr<UTexture2D>>MainTabIcon;
+
+	//键盘鼠标
+	UPROPERTY(EditAnywhere, Category = "YCN Button")
+	TMap<FName, TSoftObjectPtr<UTexture2D>>KMTabIcon;
 
 public:
 	void ApplyRegisterTab(const UYCNListData_Tab* InData);

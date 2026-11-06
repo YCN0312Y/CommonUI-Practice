@@ -99,3 +99,12 @@ void UYCNWidgetManagerSubsystem::SetOwningMainStackBackground(bool bIsVisible)
 {
 	OwningMainStack->SetBackgroundVisible(bIsVisible);
 }
+
+UYCNWidget_MainStack* UYCNWidgetManagerSubsystem::GetOwningMainStack() const
+{
+	if (IsValid(OwningMainStack))
+	{
+		return OwningMainStack.Get();
+	}
+	return nullptr;
+}

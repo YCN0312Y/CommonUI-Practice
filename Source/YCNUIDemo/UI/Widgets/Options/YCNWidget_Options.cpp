@@ -17,6 +17,8 @@
 #include "Components/Border.h"
 #include "YCNUIDemo/Msic/YCNDataType.h"
 #include "YCNUIDemo/Settings/YCNGameUserSettings.h"
+#include "YCNUIDemo/UI/Widgets/YCNWidget_MainStack.h"
+#include "YCNUIDemo/Tags/YCNGameplayTags.h"
 
 #include "YCNUIDemo/DebugHelper/YCNDebugHelper.h"
 
@@ -45,6 +47,12 @@ void UYCNWidget_Options::NativeOnInitialized()
 		ListView_SubTab->SetSelectionMode(ESelectionMode::Single);
 		ListView_SubTab->OnEntryWidgetGenerated().AddUObject(this, &UYCNWidget_Options::OnListEntryGenerated);
 		ListView_SubTab->OnItemSelectionChanged().AddUObject(this, &UYCNWidget_Options::OnSubTabSelectionChanged);
+	}
+	if (IsValid(ListView_Control))
+	{
+		ListView_Control->SetSelectionMode(ESelectionMode::Single);
+		ListView_Control->OnEntryWidgetGenerated().AddUObject(this, &UYCNWidget_Options::OnListEntryGenerated);
+		ListView_Control->OnItemSelectionChanged().AddUObject(this, &UYCNWidget_Options::OnSubTabSelectionChanged);
 	}
 	if (IsValid(Border_DropdownBlocker))
 	{
@@ -123,13 +131,17 @@ bool UYCNWidget_Options::NativeOnHandleBackAction()
 	if (bLeaveConfirmationOpen) return true;
 
 	UYCNGameUserSettings* Settings = UYCNGameUserSettings::Get();
+
 	if (!Settings || !Settings->HasPendingQualityChanges())
 	{
+		// 真正退出选项页面前，恢复返回主菜单的过渡时间。
+		SetStackTransitionDuration(YCNGameplayTags::YCN_WidgetStack_Menu, 0.4f);
+
 		return Super::NativeOnHandleBackAction();
 	}
 
 	ConfirmQualityBeforeLeaving(NAME_None);
-	return true; // 本次返回已处理，设置页先保持打开
+	return true;
 }
 
 void UYCNWidget_Options::OnClicked_Reset()
@@ -342,19 +354,19 @@ void UYCNWidget_Options::AddResetAction(const FName& InTabID)
 
 void UYCNWidget_Options::OnSettingValueChanged()
 {
-	const FName CurrentTabID = IsValid(TabList_Tab) ? TabList_Tab->GetSelectedTabId() : NAME_None;
+	AddResetAction(DisplayedTabID);
 
-	AddResetAction(CurrentTabID);
+	const bool bIsControlTab = DisplayedTabID == FName(TEXT("ControllerTab")) || DisplayedTabID == FName(TEXT("KeyboardMouseTab"));
 
-	if (!IsValid(ListView_SubTab)) return;
+	UYCNWidget_ListViewBase* CurrentList = bIsControlTab ? ListView_Control.Get() : ListView_SubTab.Get();
+
+	if (!IsValid(CurrentList)) return;
 	
-
-	// 更新当前已经显示出来的文本 Entry。
-	for (UUserWidget* EntryWidget : ListView_SubTab->GetDisplayedEntryWidgets())
+	for (UUserWidget* EntryWidget : CurrentList->GetDisplayedEntryWidgets())
 	{
-		if (UYCNWidget_EntryBase* ValueEntry = Cast<UYCNWidget_EntryBase>(EntryWidget))
+		if (UYCNWidget_EntryBase* Entry = Cast<UYCNWidget_EntryBase>(EntryWidget))
 		{
-			ValueEntry->RefreshEntryData();
+			Entry->RefreshEntryData();
 		}
 	}
 }
@@ -410,41 +422,52 @@ FEventReply UYCNWidget_Options::OnDropdownBlockerMouseButtonDown(FGeometry MyGeo
 
 void UYCNWidget_Options::ShowTabContent(FName TabID)
 {
-	if (!IsValid(ListView_SubTab))return;
-
-	DisplayedTabID = TabID;
-
-	AddResetAction(TabID);
-
-	UYCNListData_Tab* SelectedTab = nullptr;
-
-	if (IsValid(OwningRegisterData) && !TabID.IsNone())
+	if (!IsValid(ListView_Control) || !IsValid(ListView_SubTab))
 	{
-		SelectedTab = OwningRegisterData->GetDataByDataID(TabID);
-	}
-
-	ListView_SubTab->ClearSelection();
-
-	if (!IsValid(SelectedTab))
-	{
-		ListView_SubTab->ClearListItems();
 		return;
 	}
 
-	ListView_SubTab->SetListItems(GetTabAllChildData(SelectedTab, TabID));
+	const bool bIsControlTab = TabID == FName(TEXT("ControllerTab")) || TabID == FName(TEXT("KeyboardMouseTab"));
 
-	if (IsValid(SelectedTab))
+	// 切换分类前，关闭上一页可能打开的下拉菜单。
+	if (SelectedDropdownEntry.IsValid())
 	{
-		//更新详情面板
-		UpdateDetails(SelectedTab);
+		SelectedDropdownEntry->CloseDropdownMenu(false);
+	}
+	if (bIsControlTab)
+	{
+		//是控制器或者按键标签就将堆栈过渡时间设置为0
+		SetStackTransitionDuration(YCNGameplayTags::YCN_WidgetStack_Menu, 0.f);
+	}
+	else
+	{
+		SetStackTransitionDuration(YCNGameplayTags::YCN_WidgetStack_Menu, 0.4f);
 	}
 
-	if (!ListView_SubTab->GetListItems().IsEmpty())
+	SelectedDropdownEntry.Reset();
+	SetDropdownBlockerVisible(false);
+
+	// 清除旧页面的选择状态。
+	ListView_Control->ClearSelection();
+	ListView_SubTab->ClearSelection();
+	UniqueSelectedItem.Reset();
+
+	ListView_Control->SetVisibility(bIsControlTab ? ESlateVisibility::Visible : ESlateVisibility::Collapsed);
+
+	ListView_SubTab->SetVisibility(bIsControlTab ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
+
+	// 控制器和键鼠页使用较宽的内容布局，不显示右侧详情。
+	if (IsValid(DetailsBase_Details))
 	{
-		ListView_SubTab->SetSelectedIndex(0);
-		ListView_SubTab->NavigateToIndex(0);
+		DetailsBase_Details->SetVisibility(bIsControlTab ? ESlateVisibility::Collapsed : ESlateVisibility::Visible);
 	}
-	ListView_SubTab->ScrollToTop();
+
+	DisplayedTabID = TabID;
+	AddResetAction(TabID);
+
+	UYCNWidget_ListViewBase* TargetList = bIsControlTab ? ListView_Control.Get() : ListView_SubTab.Get();
+
+	AddDataToList(TabID, TargetList);
 }
 
 void UYCNWidget_Options::ConfirmQualityBeforeLeaving(FName TargetTabID)
@@ -486,4 +509,61 @@ void UYCNWidget_Options::ConfirmQualityBeforeLeaving(FName TargetTabID)
 				TabList_Tab->SelectTabByID(TargetTabID, true);
 			}
 		});
+}
+
+void UYCNWidget_Options::AddDataToList(FName TabID, UYCNWidget_ListViewBase* InList)
+{
+	if (!IsValid(InList))
+	{
+		return;
+	}
+
+	UYCNListData_Tab* SelectedTab = nullptr;
+
+	if (IsValid(OwningRegisterData) && !TabID.IsNone())
+	{
+		SelectedTab = OwningRegisterData->GetDataByDataID(TabID);
+	}
+
+	InList->ClearSelection();
+
+	if (!IsValid(SelectedTab))
+	{
+		InList->ClearListItems();
+
+		if (IsValid(DetailsBase_Details))
+		{
+			DetailsBase_Details->SetDataDetails(FText::GetEmpty(), FText::GetEmpty());
+		}
+		return;
+	}
+
+	// 根据传入的列表，填充当前分类的数据。
+	InList->SetListItems(GetTabAllChildData(SelectedTab, TabID));
+
+	// 普通列表才需要更新右侧详情。
+	if (InList == ListView_SubTab.Get())
+	{
+		UpdateDetails(SelectedTab);
+	}
+
+	if (!InList->GetListItems().IsEmpty())
+	{
+		InList->SetSelectedIndex(0);
+		InList->NavigateToIndex(0);
+	}
+
+	InList->ScrollToTop();
+}
+
+void UYCNWidget_Options::SetStackTransitionDuration(const FGameplayTag& InStackTag, float InDuration)
+{
+	if (UYCNWidgetManagerSubsystem* Manager = UYCNWidgetManagerSubsystem::Get(this))
+	{
+		UYCNWidget_MainStack* MainStack = Manager->GetOwningMainStack();
+		if (IsValid(MainStack))
+		{
+			Manager->GetOwningMainStack()->SetStackTransitionDuration(MainStack->FindWidgetByTag(InStackTag), InDuration);
+		}
+	}
 }

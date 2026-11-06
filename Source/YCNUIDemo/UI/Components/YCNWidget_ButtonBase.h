@@ -33,6 +33,9 @@ public:
 	//图标选中颜色
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "YCN Button")
 	FSlateColor IconSelectedColor = FSlateColor(FColor::Black);
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bHasIcon = false;
 private:
 	//按钮显示文本
 	UPROPERTY(EditAnywhere, Category = "YCN Button")
