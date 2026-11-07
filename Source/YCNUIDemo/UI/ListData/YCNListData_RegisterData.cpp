@@ -60,7 +60,7 @@ void UYCNListData_RegisterData::InitKeyboardMouseList()
 	{
 		UYCNListData_Image* UserKeys = NewObject<UYCNListData_Image>();
 		CreateImageData(
-			UserKeys, TEXT("UserKeys"), SetDataText(TEXT("自定义键位")), FText::GetEmpty(),
+			UserKeys, TEXT("UserKeys"), SetDataText(TEXT("自定义键位")), FText::GetEmpty(), KeyboardMouseTab,
 			UYCNFunctionLibrary::GetAssetImageById(FName("UserKeys")),
 			[this]()
 			{
@@ -70,8 +70,7 @@ void UYCNListData_RegisterData::InitKeyboardMouseList()
 						YCNGameplayTags::YCN_WidgetStack_Menu,
 						UYCNFunctionLibrary::GetSoftWidgetByTag(YCNGameplayTags::YCN_Widget_KeyboardMouse));
 				}
-			},
-			KeyboardMouseTab);
+			});
 	}
 }
 
@@ -613,7 +612,7 @@ void UYCNListData_RegisterData::CreateTextData(UYCNListData_Text* InData, FName 
 }
 
 void UYCNListData_RegisterData::CreateImageData(UYCNListData_Image* InData, FName InDataID, const FText& InDisplayText, const FText& InDescriptionText, 
-	UTexture2D* InDataIcon, TFunction<void()> InFunction, UYCNListData_Base* InParentData)
+	UYCNListData_Base* InParentData, TSoftObjectPtr<UTexture2D>InDataIcon, TFunction<void()> InFunction)
 {
 	if (!IsValid(InData) || !IsValid(InParentData) || InDataID.IsNone()) return;
 

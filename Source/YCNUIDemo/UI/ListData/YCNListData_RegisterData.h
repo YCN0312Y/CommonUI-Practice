@@ -22,12 +22,6 @@ class YCNUIDEMO_API UYCNListData_RegisterData : public UObject
 {
 	GENERATED_BODY()
 
-public:
-	//初始化数据列表
-	virtual void InitDataList();
-
-	virtual UYCNListData_Tab* GetDataByDataID(const FName& InDataID);
-
 private:
 	UPROPERTY(Transient)
 	TArray<UYCNListData_Tab*> AvailableDataList;
@@ -40,6 +34,21 @@ private:
 		SetDataText(TEXT("超高")),
 		SetDataText(TEXT("影视级")),
 	};
+
+public:
+	//初始化数据列表
+	virtual void InitDataList();
+
+	virtual UYCNListData_Tab* GetDataByDataID(const FName& InDataID);
+
+	//设置数据字符串
+	FText SetDataText(const FString& InDaraString);
+
+	const TArray<UYCNListData_Tab*>& GetAvailableDataList() const { return AvailableDataList; }
+
+	//UYCNListData_Image
+	void CreateImageData(UYCNListData_Image* InData, FName InDataID, const FText& InDisplayText, const FText& InDescriptionText,
+		UYCNListData_Base* InParentData, TSoftObjectPtr<UTexture2D>InDataIcon, TFunction<void()> InFunction);
 
 public:
 	//用户设置
@@ -70,9 +79,6 @@ private:
 
 	//初始化帮助设置
 	void InitQuitList();
-
-	//设置数据字符串
-	FText SetDataText(const FString& InDaraString);
 
 	//获取最大分辨率值
 	FText GetMaxResolutionText();
@@ -130,10 +136,6 @@ private:
 	void CreateTextData(UYCNListData_Text* InData, FName InDataID, const FText& InDisplayText,
 		const FText& InDescriptionText, EConfirmationWindowsType InWindowType,
 		const FText& InMessage, TFunction<void(EConfirmationWindowsButtonType)>InFunction, UYCNListData_Base* InParentData);
-
-	//UYCNListData_Image
-	void CreateImageData(UYCNListData_Image* InData, FName InDataID, const FText& InDisplayText, const FText& InDescriptionText,
-		UTexture2D* InDataIcon, TFunction<void()> InFunction, UYCNListData_Base* InParentData);
 
 	//UYCNListData_String
 	template<typename TGetter, typename TSetter>
@@ -218,7 +220,4 @@ private:
 		BindCachedValue(InData, InGetter, InSetter, bSaveOnWrite);
 		InParentData->AddChildData(InData);
 	}
-
-public:
-	const TArray<UYCNListData_Tab*>& GetAvailableDataList() const { return AvailableDataList; }
 };

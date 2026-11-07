@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_RegisterData.h"
+#include "InputCoreTypes.h"
 #include "YCNListData_RegisterKeyMouseData.generated.h"
 
 class UYCNListData_Base;
@@ -34,6 +35,11 @@ private:
 
 	//创建图标式标签
 	void CreateIconTabData(UYCNListData_Tab* InData, const FName& InDataID, UYCNListData_Base* InParentData = nullptr);
+
+protected:
+	//UYCNListData_Image
+	void CreateKeyImageData(UYCNListData_Image* InData, FName InDataID, const FText& InDisplayText, const FText& InDescriptionText,
+		const FKey& InKey, UYCNListData_Base* InParentData);
 
 public:
 	const TArray<UYCNListData_Tab*>& GetKeyboardMouseDataList()const { return KeyboardMouseDataList; }

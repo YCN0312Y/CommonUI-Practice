@@ -15,19 +15,23 @@ class YCNUIDEMO_API UYCNWidget_Entry_Image : public UYCNWidget_EntryBase
 	GENERATED_BODY()
 
 protected:
+	//初始化
 	virtual void NativeOnInitialized()override;
 
+	//有数据加入本条目
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject)override;
 
 	//切换条目状态
 	virtual void SwitchItemStatus(bool bIsSwitch)override;
 
+	//释放条目
 	virtual void NativeOnEntryReleased() override;
 
+	//鼠标点击
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)override;
 
 public:
-	// 从当前设置重新读取并显示选择文本。
+	//刷新条目数据
 	virtual void RefreshEntryData()override;
 
 private:
@@ -35,7 +39,8 @@ private:
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<UCommonLazyImage>CommonImage_Icon;
 
+	//持有的值数据
 	UPROPERTY(Transient)
 	TObjectPtr<UYCNListData_Image>OwningValueData;
-	
+
 };

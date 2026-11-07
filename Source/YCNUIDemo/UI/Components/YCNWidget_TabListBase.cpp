@@ -37,6 +37,10 @@ void UYCNWidget_TabListBase::NativeDestruct()
 	{
 		VerticalBox_TabContainer->ClearChildren();
 	}
+	if (IsValid(HorizontalBox_TabContainer))
+	{
+		HorizontalBox_TabContainer->ClearChildren();
+	}
 }
 
 void UYCNWidget_TabListBase::ApplyRegisterTab(const UYCNListData_Tab* InData)
@@ -83,7 +87,7 @@ void UYCNWidget_TabListBase::ApplyRegisterTab(const UYCNListData_Tab* InData)
 				USizeBoxSlot* ButtonBoxSlot = Cast<USizeBoxSlot>(ButtonBox->AddChild(CreatedTabButton));
 				if (ButtonBoxSlot)
 				{
-					ButtonBoxSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Center);
+					ButtonBoxSlot->SetHorizontalAlignment(EHorizontalAlignment::HAlign_Fill);
 					ButtonBoxSlot->SetVerticalAlignment(EVerticalAlignment::VAlign_Center);
 					ButtonBoxSlot->SetPadding(FMargin(0.f, 0.f, 0.f, 0.f));
 				}

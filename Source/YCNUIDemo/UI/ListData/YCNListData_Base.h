@@ -45,7 +45,7 @@ private:
 
 	//数据图标
 	UPROPERTY(Transient)
-	TObjectPtr<UTexture2D>DataIcon;
+	TSoftObjectPtr<UTexture2D>DataIcon;
 
 	UPROPERTY(Transient)
 	TArray<UYCNListData_Base*>ChildDataList;
@@ -61,7 +61,7 @@ public:
 	MAKE_SET_GET(bool, bDataDisabled);
 	MAKE_SET_GET(bool, bIsShowModifyPoint);
 	MAKE_SET_GET(TObjectPtr<UYCNListData_Base>, DataParent);
-	MAKE_SET_GET(TObjectPtr<UTexture2D>, DataIcon);
+	MAKE_SET_GET(TSoftObjectPtr<UTexture2D>, DataIcon);
 
 	//添加子类
 	void AddChildData(UYCNListData_Base* InChildData);

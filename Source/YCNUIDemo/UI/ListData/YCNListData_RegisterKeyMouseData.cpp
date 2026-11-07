@@ -5,6 +5,7 @@
 #include "YCNUIDemo/UI/ListData/YCNListData_Tab.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Image.h"
 #include "YCNUIDemo/Settings/YCNGameUserSettings.h"
+#include "YCNUIDemo/UI/Components/YCNWidget_ButtonBase.h"
 
 void UYCNListData_RegisterKeyMouseData::InitDataList()
 {
@@ -14,6 +15,13 @@ void UYCNListData_RegisterKeyMouseData::InitDataList()
 
 UYCNListData_Tab* UYCNListData_RegisterKeyMouseData::GetDataByDataID(const FName& InDataID)
 {
+	for (const TObjectPtr<UYCNListData_Tab>& Data : KeyboardMouseDataList)
+	{
+		if (Data && Data->GetDataID() == InDataID)
+		{
+			return Data.Get();
+		}
+	}
 	return nullptr;
 }
 
@@ -22,7 +30,10 @@ void UYCNListData_RegisterKeyMouseData::InitKeyboardList()
 	UYCNListData_Tab* KeyboardTab = NewObject<UYCNListData_Tab>();
 	CreateIconTabData(KeyboardTab, FName("KeyboardTab"));
 	{
-
+		//向前移动
+		UYCNListData_Image* MoveForward = NewObject<UYCNListData_Image>(this);
+		CreateKeyImageData(MoveForward, FName("MoveForward"), SetDataText(TEXT("向前移动")),
+			FText::GetEmpty(), EKeys::W, KeyboardTab);
 	}
 }
 
@@ -31,22 +42,34 @@ void UYCNListData_RegisterKeyMouseData::InitMouseList()
 	UYCNListData_Tab* MouseTab = NewObject<UYCNListData_Tab>();
 	CreateIconTabData(MouseTab, FName("MouseTab"));
 	{
-
+		//攻击
+		UYCNListData_Image* Attack = NewObject<UYCNListData_Image>(this);
+		CreateKeyImageData(Attack, FName("Attack"), SetDataText(TEXT("攻击")),
+			FText::GetEmpty(), EKeys::LeftMouseButton, MouseTab);
 	}
 }
 
 void UYCNListData_RegisterKeyMouseData::CreateIconTabData(UYCNListData_Tab* InData, const FName& InDataID, UYCNListData_Base* InParentData)
 {
 	if (!IsValid(InData) || InDataID.IsNone() || (InParentData && !IsValid(InParentData))) return;
-    
-    InData->SetDataID(InDataID);
 
-    if (InParentData)
-    {
-        InParentData->AddChildData(InData);
-    }
-    else
-    {
-        KeyboardMouseDataList.Add(InData);
-    }
+	InData->SetDataID(InDataID);
+
+	if (InParentData)
+	{
+		InParentData->AddChildData(InData);
+	}
+	else
+	{
+		KeyboardMouseDataList.Add(InData);
+	}
+}
+
+void UYCNListData_RegisterKeyMouseData::CreateKeyImageData(UYCNListData_Image* InData, FName InDataID, const FText& InDisplayText, 
+	const FText& InDescriptionText, const FKey& InKey, UYCNListData_Base* InParentData)
+{
+	if (!IsValid(InData) || !IsValid(InParentData) || InDataID.IsNone()) return;
+	
+	CreateImageData(InData, InDataID, InDisplayText, InDescriptionText, InParentData, nullptr, {});
+	InData->SetPreviewKey(InKey);
 }

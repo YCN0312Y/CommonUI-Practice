@@ -3,6 +3,8 @@
 #include "YCNUIDemo/UI/Widgets/Options/EntryWidget/YCNWidget_Entry_Image.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Image.h"
 #include "CommonLazyImage.h"
+#include "YCNUIDemo/FunctionLibrary/YCNFunctionLibrary.h"
+#include "Engine/Texture2D.h"
 
 void UYCNWidget_Entry_Image::NativeOnInitialized()
 {
@@ -15,13 +17,7 @@ void UYCNWidget_Entry_Image::NativeOnListItemObjectSet(UObject* ListItemObject)
 
 	OwningValueData = Cast<UYCNListData_Image>(ListItemObject);
 
-	if (IsValid(CommonImage_Icon) && IsValid(OwningValueData))
-	{
-		if (OwningValueData->GetDataIcon())
-		{
-			CommonImage_Icon->SetBrushFromLazyTexture(OwningValueData->GetDataIcon());
-		}
-	}
+	RefreshEntryData();
 }
 
 void UYCNWidget_Entry_Image::SwitchItemStatus(bool bIsSwitch)
@@ -32,6 +28,10 @@ void UYCNWidget_Entry_Image::SwitchItemStatus(bool bIsSwitch)
 void UYCNWidget_Entry_Image::NativeOnEntryReleased()
 {
 	Super::NativeOnEntryReleased();
+
+	OwningValueData = nullptr;
+
+	RefreshEntryData();
 }
 
 FReply UYCNWidget_Entry_Image::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -52,4 +52,30 @@ FReply UYCNWidget_Entry_Image::NativeOnMouseButtonDown(const FGeometry& InGeomet
 void UYCNWidget_Entry_Image::RefreshEntryData()
 {
 	Super::RefreshEntryData();
+
+	if (!IsValid(CommonImage_Icon) || !IsValid(OwningValueData)) return;
+
+	CommonImage_Icon->SetBrush(FSlateBrush());
+	CommonImage_Icon->SetVisibility(ESlateVisibility::Hidden);
+
+	//KeyData
+	if (OwningValueData->HasPreviewKey())
+	{
+		FSlateBrush KeyBrush;
+
+		if (UYCNFunctionLibrary::TryGetKeyBrush(OwningValueData->GetPreviewKey(), KeyBrush))
+		{
+			CommonImage_Icon->SetBrush(KeyBrush);
+			CommonImage_Icon->SetVisibility(ESlateVisibility::HitTestInvisible);
+		}
+		return;
+	}
+
+	//普通的ImageData
+	TSoftObjectPtr<UTexture2D>DataIcon = OwningValueData->GetDataIcon();
+	if (!DataIcon.IsNull())
+	{
+		CommonImage_Icon->SetBrushFromLazyTexture(DataIcon);
+		CommonImage_Icon->SetVisibility(ESlateVisibility::HitTestInvisible);
+	}
 }

@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "GameplayTagContainer.h"
+#include "InputCoreTypes.h"
+#include "Styling/SlateBrush.h"
 #include "YCNFunctionLibrary.generated.h"
 
 class UYCNWidget_ActivatableWidgetBase;
@@ -21,10 +23,15 @@ public:
 	//根据标签获取软引用控件
 	UFUNCTION(BlueprintPure, Category = "YCNFunctionLibrary")
 	static TSoftClassPtr<UYCNWidget_ActivatableWidgetBase>GetSoftWidgetByTag(FGameplayTag InWidgetTag);
+
 	//获取主堆栈控件
 	UFUNCTION(BlueprintPure, Category = "YCNFunctionLibrary")
 	static TSoftClassPtr<UYCNWidget_MainStack>GetMainStackWidget();
+
 	//根据ID在数据资产中获取对应图标
 	UFUNCTION(BlueprintPure, Category = "YCNFunctionLibrary")
-	static UTexture2D* GetAssetImageById(const FName& InDataID);
+	static TSoftObjectPtr<UTexture2D>GetAssetImageById(const FName& InDataID);
+
+	//尝试获取键的图标
+	static bool TryGetKeyBrush(const FKey& InKey, FSlateBrush& OutBrush);
 };
