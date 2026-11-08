@@ -28,4 +28,8 @@ public:
 	//数据资产
 	UPROPERTY(Config, EditAnywhere, Category = "Widgets")
 	TSoftObjectPtr<UYCNWidgetDataAsset> YCNDataAsset;
+
+	// 启动时需要额外加载的资源
+	UPROPERTY(Config, EditAnywhere, Category = "Startup Loading")
+	TArray<TSoftObjectPtr<UObject>> ExtraStartupAssets;
 };

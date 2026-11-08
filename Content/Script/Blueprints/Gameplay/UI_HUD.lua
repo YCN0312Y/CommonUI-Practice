@@ -37,19 +37,36 @@ local M = UnLua.Class()
 -- end
 
 function M:OnMainStackReady()
+    
     local PC = self:GetOwningPlayerController()
-    if PC then
-        local WidgetTag = PC.WidgetTagList:Find("AnyKey")
-        local StackTag = PC.StackTagList:Find("Menu")
-        if WidgetTag and StackTag then
-            if PushWidget and YCNFunctionLibrary then
-                local Action = PushWidget.PushSoftWidget(self, StackTag, YCNFunctionLibrary.GetSoftWidgetByTag(WidgetTag))
-                if Action then
-                    Action:Activate()
-                end
-            end
-        end
+    if not PC then
+        print("启动失败：PlayerController 无效")
+        return
     end
+
+    -- 启动时先显示加载窗口。
+    local WidgetTag = PC.WidgetTagList:Find("StartupLoading")
+
+    -- 加载窗口覆盖在 Modal 层。
+    local StackTag = PC.StackTagList:Find("Modal")
+
+    if not WidgetTag or not StackTag then
+        print("启动失败：StartupLoading 或 Modal 标签未配置")
+        return
+    end
+
+    local SoftWidget =
+        YCNFunctionLibrary.GetSoftWidgetByTag(WidgetTag)
+
+    local Action =
+        PushWidget.PushSoftWidget(self, StackTag, SoftWidget)
+
+    if not Action then
+        print("启动失败：无法创建加载窗口推送请求")
+        return
+    end
+
+    Action:Activate()
 end
 
 return M

@@ -22,5 +22,10 @@ public class YCNUIDemo : ModuleRules
             "GameplayTags",
             "ApplicationCore"
         });
+
+        PrivateDependencyModuleNames.AddRange(new string[]
+        {
+            "MoviePlayer"
+        });
     }
 }
