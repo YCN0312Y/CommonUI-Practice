@@ -55,6 +55,17 @@ private:
 	//键输入处理器
 	TSharedPtr<FYCNKeyInputProcessor> KeyInputProcessor;
 
+	//当前值
+	FKey CurrentKey;
+
+	//重置
+	UPROPERTY(EditAnywhere, Category = "YCN Action")
+	FDataTableRowHandle ResetAction;
+	//重置操作句柄
+	FUIActionBindingHandle ResetActionHandle;
+
+	bool bResetActionAdded = false;
+
 private:
 	//初始化注册数据
 	UYCNListData_RegisterKeyMouseData* InitOwningRegisterData();
@@ -69,72 +80,30 @@ private:
 	//小条目点击回调
 	void OnKeyItemClicked(UObject* InItem);
 
-	//停止键输入处理器
+	void SetItemWaitingForInput(UYCNListData_Image* InData, bool bWaiting);
+
+	//停止捕获按键输入
 	void StopKeyInputProcessor();
 
-	//输入处理器返回按键后，更新条目显示。
-	void OnCapturedKey(FKey PressedKey);
+	void OnClick_Key(const FKey& InKey);
 
-	//按键已释放，或输入会话被取消。
-	void OnCaptureFinished();
+	void OnClicked_Reset();
+
+	void AddResetAction(const FName& InTabID);
 };
 
 //按键输入处理器
 class FYCNKeyInputProcessor : public IInputProcessor, public TSharedFromThis<FYCNKeyInputProcessor>
 {
 public:
-	FYCNKeyInputProcessor(int32 InUserIndex, TSharedRef<SWidget> InCaptureWidget);
-
-private:
-	int32 UserIndex = 0;
-
-	//捕获空间
-	TWeakPtr<SWidget> CaptureWidget;
-
-	//按下的键
-	TSet<FKey> PressedKeys;
-
-	FKey CapturedKey;
-
-	//结果已完成
-	bool bResultDelivered = false;
-
-	//消请求
-	bool bCancelRequested = false;
-
-	//是否已完成
-	bool bFinished = false;
-
-public:
-	//按键按下
-	DECLARE_DELEGATE_OneParam(FOnKeyCaptured, FKey);
-	FOnKeyCaptured OnKeyCaptured;
-
-	//捕获完成
-	DECLARE_DELEGATE(FOnCaptureFinished);
-	FOnCaptureFinished OnCaptureFinished;
-
+	DECLARE_DELEGATE_OneParam(FOnClickDelegate, const FKey& InKey);
+	FOnClickDelegate OnClickDelegate;
 protected:
 	virtual void Tick(const float DeltaTime, FSlateApplication& SlateApp, TSharedRef<ICursor> Cursor) override;
 
 	//按键按下
 	virtual bool HandleKeyDownEvent(FSlateApplication& SlateApp, const FKeyEvent& Event) override;
 
-	//按键松开
-	virtual bool HandleKeyUpEvent(FSlateApplication& SlateApp, const FKeyEvent& Event) override;
-
 	//鼠标按下
 	virtual bool HandleMouseButtonDownEvent(FSlateApplication& SlateApp, const FPointerEvent& Event) override;
-
-	//鼠标松开
-	virtual bool HandleMouseButtonUpEvent(FSlateApplication& SlateApp, const FPointerEvent& Event) override;
-
-private:
-	bool IsInScope(FSlateApplication& SlateApp) const;
-
-	bool IsPointerInside(const FPointerEvent& Event) const;
-
-	void PressKey(const FKey& Key);
-
-	void Finish();
 };

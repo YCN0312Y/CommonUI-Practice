@@ -9,11 +9,13 @@
 #include "YCNUIDemo/UI/Widgets/Options/EntryWidget/YCNWidget_Entry_Image.h"
 #include "YCNUIDemo/FunctionLibrary/YCNFunctionLibrary.h"
 #include "YCNUIDemo/DebugHelper/YCNDebugHelper.h"
+#include "YCNUIDemo/Subsystems/YCNWidgetManagerSubsystem.h"
 #include "Engine/LocalPlayer.h"
 #include "Framework/Application/IInputProcessor.h"
 #include "Framework/Application/SlateApplication.h"
 #include "Input/Events.h"
 #include "Widgets/SWidget.h"
+#include "Input/CommonUIInputTypes.h"
 
 void UYCNWidget_KeyboardMouse::NativeOnInitialized()
 {
@@ -26,19 +28,26 @@ void UYCNWidget_KeyboardMouse::NativeOnInitialized()
 	{
 		ListView_Key->OnItemClicked().AddUObject(this, &UYCNWidget_KeyboardMouse::OnKeyItemClicked);
 	}
+	if (!ResetAction.IsNull())
+	{
+		ResetActionHandle = RegisterUIActionBinding(
+			FBindUIActionArgs(ResetAction, true, FSimpleDelegate::CreateUObject(this, &UYCNWidget_KeyboardMouse::OnClicked_Reset)));
+		if (ResetActionHandle.IsValid())
+		{
+			RemoveActionBinding(ResetActionHandle);
+		}
+	}
 }
 
 void UYCNWidget_KeyboardMouse::NativePreConstruct()
 {
 	Super::NativePreConstruct();
-
+	StopKeyInputProcessor();
 }
 
 void UYCNWidget_KeyboardMouse::NativeOnActivated()
 {
 	Super::NativeOnActivated();
-
-	StopKeyInputProcessor();
 
 	//初始化标签列表
 	InitTabList();
@@ -106,12 +115,11 @@ UYCNListData_RegisterKeyMouseData* UYCNWidget_KeyboardMouse::InitOwningRegisterD
 
 void UYCNWidget_KeyboardMouse::OnTabSelected(FName InTabID)
 {
-	// 切换标签时，取消上一行的捕获。
 	StopKeyInputProcessor();
 
 	if (!IsValid(OwningRegisterData) || !IsValid(ListView_Key)) return;
 	UYCNListData_Tab* FoundDataTab = OwningRegisterData->GetDataByDataID(InTabID);
-
+	AddResetAction(InTabID);
 	ListView_Key->ClearSelection();
 
 	if (!IsValid(FoundDataTab))
@@ -133,31 +141,20 @@ void UYCNWidget_KeyboardMouse::OnTabSelected(FName InTabID)
 
 void UYCNWidget_KeyboardMouse::OnKeyItemClicked(UObject* InItem)
 {
+	if (!IsValid(ListView_Key) || !FSlateApplication::IsInitialized()) return;
+
 	UYCNListData_Image* ClickedData = Cast<UYCNListData_Image>(InItem);
+	if (!IsValid(ClickedData))return;
 
-	if (!IsValid(ClickedData) || !ClickedData->HasPreviewKey())return;
+	//已经在捕获时
+	if (KeyInputProcessor.IsValid()) return;
 
-	// 已在捕获中，避免重复启动。
-	if (KeyInputProcessor.IsValid())return;
-
-	if (!IsActivated() || !GetOwningPlayer() || !GetOwningLocalPlayer() || !FSlateApplication::IsInitialized())return;
-
+	//保存当前正在等待输入的数据
 	PendingIconData = ClickedData;
+	KeyInputProcessor = MakeShared<FYCNKeyInputProcessor>();
+	KeyInputProcessor->OnClickDelegate.BindUObject(this, &UYCNWidget_KeyboardMouse::OnClick_Key);
 
-	// 将焦点交给当前页面，便于限定捕获范围。
-	SetIsFocusable(true);
-	SetUserFocus(GetOwningPlayer());
-
-	FSlateApplication& SlateApp = FSlateApplication::Get();
-
-	const int32 UserIndex = SlateApp.GetUserIndexForController(GetOwningLocalPlayer()->GetControllerId());
-
-	KeyInputProcessor = MakeShared<FYCNKeyInputProcessor>(UserIndex, TakeWidget());
-
-	KeyInputProcessor->OnKeyCaptured.BindUObject(this, &UYCNWidget_KeyboardMouse::OnCapturedKey);
-	KeyInputProcessor->OnCaptureFinished.BindUObject(this, &UYCNWidget_KeyboardMouse::OnCaptureFinished);
-
-	const bool bRegistered = SlateApp.RegisterInputPreProcessor(KeyInputProcessor, 0);
+	const bool bRegistered = FSlateApplication::Get().RegisterInputPreProcessor(KeyInputProcessor, 0);
 
 	if (!bRegistered)
 	{
@@ -165,200 +162,242 @@ void UYCNWidget_KeyboardMouse::OnKeyItemClicked(UObject* InItem)
 		return;
 	}
 
-	YCNDebug::Print(FString::Printf(TEXT("当前条目：%s，请按下按键，Esc 取消"), *ClickedData->GetDataDisplayText().ToString()));
+	//确认注册成功后显示等待输入的图片
+	SetItemWaitingForInput(PendingIconData.Get(), true);
+}
+
+void UYCNWidget_KeyboardMouse::SetItemWaitingForInput(UYCNListData_Image* InData, bool bWaiting)
+{
+	if (!IsValid(InData) || !IsValid(ListView_Key))return;
+
+	InData->SetWaitingForInput(bWaiting);
+
+	UYCNWidget_Entry_Image* EntryWidget = ListView_Key->GetEntryWidgetFromItem<UYCNWidget_Entry_Image>(InData);
+	if (IsValid(EntryWidget))
+	{
+		EntryWidget->RefreshEntryData();
+	}
 }
 
 void UYCNWidget_KeyboardMouse::StopKeyInputProcessor()
 {
-	PendingIconData = nullptr;
-
 	if (!KeyInputProcessor.IsValid()) return;
 
-	KeyInputProcessor->OnKeyCaptured.Unbind();
-	KeyInputProcessor->OnCaptureFinished.Unbind();
+	SetItemWaitingForInput(PendingIconData.Get(), false);
+	PendingIconData = nullptr;
+
+	//取消绑定
+	KeyInputProcessor->OnClickDelegate.Unbind();
 
 	if (FSlateApplication::IsInitialized())
 	{
+		//取消注册
 		FSlateApplication::Get().UnregisterInputPreProcessor(KeyInputProcessor);
 	}
-
+	//重置
 	KeyInputProcessor.Reset();
 }
 
-void UYCNWidget_KeyboardMouse::OnCapturedKey(FKey PressedKey)
+void UYCNWidget_KeyboardMouse::OnClick_Key(const FKey& InKey)
 {
+	if (!InKey.IsValid() || !IsValid(TabList_Key) || !IsValid(PendingIconData)) return;
+
 	UYCNListData_Image* TargetData = PendingIconData.Get();
 
-	if (!IsValid(TargetData))return;
-
-	FSlateBrush KeyBrush;
-
-	// 先验证图标，缺图时不修改原来的 PreviewKey。
-	if (!UYCNFunctionLibrary::TryGetKeyBrush(PressedKey, KeyBrush))
+	if (!IsValid(TargetData) || InKey == EKeys::Escape)
 	{
-		YCNDebug::Print(FString::Printf(TEXT("没有配置这个按键的图标：%s"), *PressedKey.ToString()));
-
-		PendingIconData = nullptr;
+		//如果是Esc键就返回
+		StopKeyInputProcessor();
 		return;
 	}
+	bool bUsedByOtherAction = false;
 
-	// 更新条目数据，保证滚动复用后仍能显示新图。
-	TargetData->SetPreviewKey(PressedKey);
-
-	if (IsValid(ListView_Key))
+	if (IsValid(OwningRegisterData))
 	{
-		UYCNWidget_Entry_Image* Entry = ListView_Key->GetEntryWidgetFromItem<UYCNWidget_Entry_Image>(TargetData);
-
-		if (IsValid(Entry))
+		// 同时检查键盘和鼠标标签中的动作。
+		for (UYCNListData_Tab* TabData : OwningRegisterData->GetKeyboardMouseDataList())
 		{
-			Entry->RefreshEntryData();
+			if (!IsValid(TabData))continue;
+			
+			for (UYCNListData_Base* ChildData : TabData->GetChildDataList())
+			{
+				const UYCNListData_Image* OtherData = Cast<UYCNListData_Image>(ChildData);
+
+				//排除当前正在修改的条目
+				if (!IsValid(OtherData) || OtherData == TargetData) continue;
+				
+				if (OtherData->GetPreviewKey() == InKey)
+				{
+					bUsedByOtherAction = true;
+					break;
+				}
+			}
+
+			if (bUsedByOtherAction) break;
 		}
 	}
 
-	YCNDebug::Print(FString::Printf(TEXT("%s 的图标已更换为：%s"), *TargetData->GetDataDisplayText().ToString(), *PressedKey.ToString()));
+	if (bUsedByOtherAction)
+	{
+		if (IsValid(ListView_Key))
+		{
+			UYCNWidget_Entry_Image* EntryWidget = ListView_Key->GetEntryWidgetFromItem<UYCNWidget_Entry_Image>(TargetData);
 
-	// 图标更新完毕。
-	// 处理器继续收尾，等按键松开后再注销。
-	PendingIconData = nullptr;
-}
+			if (IsValid(EntryWidget))
+			{
+				EntryWidget->SetClickTextStyleAndText();
+			}
+		}
 
-void UYCNWidget_KeyboardMouse::OnCaptureFinished()
-{
+		return;
+	}
+
+	FSlateBrush KeyBrush;
+
+	if (UYCNFunctionLibrary::TryGetKeyBrush(InKey, KeyBrush))
+	{
+		if (TargetData->GetSettingBinding().TryWrite(InKey))
+		{
+			CurrentKey = InKey;
+		}
+	}
+	else
+	{
+		UE_LOG(LogYCNCommonUI, Error, TEXT("没有配置这个按键的图标：%s"), *InKey.ToString());
+	}
+
 	StopKeyInputProcessor();
 
-	if (IsActivated() && IsValid(ListView_Key) && GetOwningPlayer())
+	AddResetAction(TabList_Key->GetSelectedTabId());
+}
+
+void UYCNWidget_KeyboardMouse::OnClicked_Reset()
+{
+	if (!IsValid(OwningRegisterData) || !IsValid(TabList_Key)) return;
+
+	//当前选择的标签ID
+	const FName CurrentSelectedTabID = TabList_Key->GetSelectedTabId();
+	//当前标签
+	UYCNListData_Tab* CurrentTab = OwningRegisterData->GetDataByDataID(CurrentSelectedTabID);
+
+	UYCNWidgetManagerSubsystem* Manager = UYCNWidgetManagerSubsystem::Get(this);
+
+	if (!IsValid(CurrentTab) || !IsValid(Manager)) return;
+
+	//记录点击重置时的页面，回调执行时检查对象是否仍有效。
+	TWeakObjectPtr<UYCNListData_Tab> WeakTab = CurrentTab;
+
+	Manager->PushConfirmationToStack(
+		EConfirmationWindowsType::YesNO,
+		FText::FromString(TEXT("确定重置当前页面所有内容吗？")),
+		[WeakTab, this](EConfirmationWindowsButtonType ButtonType)
+		{
+			if (ButtonType != EConfirmationWindowsButtonType::Yes) return;
+
+			//要重置的标签页
+			UYCNListData_Tab* TabToReset = WeakTab.Get();
+			if (!IsValid(TabToReset))return;
+			for (UYCNListData_Base* ChildData : TabToReset->GetChildDataList())
+			{
+				UYCNListData_Image* ImageData = Cast<UYCNListData_Image>(ChildData);
+
+				if (!IsValid(ImageData)) continue;
+			
+				ImageData->ResetToDefault();
+			}
+
+			if (IsValid(ListView_Key))
+			{
+				for (UUserWidget* EntryWidget : ListView_Key->GetDisplayedEntryWidgets())
+				{
+					UYCNWidget_Entry_Image* ImageEntry = Cast<UYCNWidget_Entry_Image>(EntryWidget);
+
+					if (IsValid(ImageEntry))
+					{
+						//刷新条目数据
+						ImageEntry->RefreshEntryData();
+					}
+				}
+			}
+
+			//隐藏重置按钮
+			if (IsValid(TabList_Key))
+			{
+				AddResetAction(TabList_Key->GetSelectedTabId());
+			}
+		});
+}
+
+void UYCNWidget_KeyboardMouse::AddResetAction(const FName& InTabID)
+{
+	if (!ResetActionHandle.IsValid()) return;
+	
+	bool bShouldShowReset = false;
+
+	if (IsValid(OwningRegisterData) && !InTabID.IsNone())
 	{
-		ListView_Key->SetUserFocus(GetOwningPlayer());
+		UYCNListData_Tab* CurrentTab = OwningRegisterData->GetDataByDataID(InTabID);
+
+		if (IsValid(CurrentTab))
+		{
+			// 当前键盘、鼠标条目都直接放在标签下面。
+			for (UYCNListData_Base* ChildData : CurrentTab->GetChildDataList())
+			{
+				const UYCNListData_Image* ImageData = Cast<UYCNListData_Image>(ChildData);
+
+				if (IsValid(ImageData) && ImageData->CanResetToDefault())
+				{
+					bShouldShowReset = true;
+					break;
+				}
+			}
+		}
 	}
+
+	if (bShouldShowReset == bResetActionAdded) return;
+	
+	if (bShouldShowReset)
+	{
+		AddActionBinding(ResetActionHandle);
+	}
+	else
+	{
+		RemoveActionBinding(ResetActionHandle);
+	}
+
+	bResetActionAdded = bShouldShowReset;
 }
 
 //===================================================================
 //FYCNKeyInputProcessor按键输入处理器
 //===================================================================
-
-FYCNKeyInputProcessor::FYCNKeyInputProcessor(int32 InUserIndex, TSharedRef<SWidget> InCaptureWidget)
-	: UserIndex(InUserIndex),
-	CaptureWidget(InCaptureWidget)
-{
-
-}
-
 void FYCNKeyInputProcessor::Tick(const float DeltaTime, FSlateApplication& SlateApp, TSharedRef<ICursor> Cursor)
 {
-	// 回调可能让页面注销处理器。
-	// 在本次 Tick 返回前保持对象存活。
-	const TSharedRef<FYCNKeyInputProcessor> KeepAlive = AsShared();
 
-	if (bFinished)return;
-
-	// 页面失去焦点或应用失活时，结束捕获。
-	if (bCancelRequested || !IsInScope(SlateApp))
-	{
-		Finish();
-		return;
-	}
-
-	if (!CapturedKey.IsValid()) return;
-
-
-	// 下一次 Tick 派发按下结果，避免在按键事件中处理释放。
-	if (!bResultDelivered)
-	{
-		bResultDelivered = true;
-
-		// Escape 只取消，不改变图片。
-		if (CapturedKey != EKeys::Escape)
-		{
-			const FOnKeyCaptured Callback = OnKeyCaptured;
-			Callback.ExecuteIfBound(CapturedKey);
-		}
-	}
-
-	// 图标可以先更新；保持处理器直到按键松开，
-	// 避免松开事件继续触发下层 UI。
-	if (PressedKeys.IsEmpty())
-	{
-		Finish();
-	}
 }
 
 bool FYCNKeyInputProcessor::HandleKeyDownEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent)
 {
-	if (InKeyEvent.GetUserIndex() != UserIndex || !IsInScope(SlateApp) || bFinished)return false;
+	if (!InKeyEvent.GetKey().IsValid()) return false;
 
-	// 等待期间消费重复输入，但不重复提交结果。
-	if (InKeyEvent.IsRepeat())return true;
+	//保证外部回调清理处理器时，本次函数执行期间对象仍然存活
+	const TSharedRef<FYCNKeyInputProcessor> KeepAlive = AsShared();
 
-	PressKey(InKeyEvent.GetKey());
-	return true;
-}
+	//使用委托副本，允许回调解除原委托的绑定
+	const FOnClickDelegate Callback = OnClickDelegate;
+	Callback.ExecuteIfBound(InKeyEvent.GetKey());
 
-bool FYCNKeyInputProcessor::HandleKeyUpEvent(FSlateApplication& SlateApp, const FKeyEvent& Event)
-{
-	if (Event.GetUserIndex() != UserIndex || !IsInScope(SlateApp) || bFinished)return false;
-
-	PressedKeys.Remove(Event.GetKey());
 	return true;
 }
 
 bool FYCNKeyInputProcessor::HandleMouseButtonDownEvent(FSlateApplication& SlateApp, const FPointerEvent& MouseEvent)
 {
-	if (MouseEvent.GetUserIndex() != UserIndex || !IsInScope(SlateApp) || bFinished) return false;
+	if (!MouseEvent.GetEffectingButton().IsValid())return false;
 
-	// 点击捕获页面以外的区域，取消并放行该点击。
-	if (!IsPointerInside(MouseEvent))
-	{
-		bCancelRequested = true;
-		return false;
-	}
+	const TSharedRef<FYCNKeyInputProcessor> KeepAlive = AsShared();
 
-	PressKey(MouseEvent.GetEffectingButton());
+	const FOnClickDelegate Callback = OnClickDelegate;
+	Callback.ExecuteIfBound(MouseEvent.GetEffectingButton());
+
 	return true;
-}
-
-bool FYCNKeyInputProcessor::HandleMouseButtonUpEvent(FSlateApplication& SlateApp, const FPointerEvent& Event)
-{
-	if (Event.GetUserIndex() != UserIndex || !IsInScope(SlateApp) || bFinished)return false;
-
-	PressedKeys.Remove(Event.GetEffectingButton());
-	return true;
-}
-
-bool FYCNKeyInputProcessor::IsInScope(FSlateApplication& SlateApp) const
-{
-	const TSharedPtr<SWidget> Widget = CaptureWidget.Pin();
-
-	if (!SlateApp.IsActive() || !Widget.IsValid())return false;
-
-	return Widget->HasUserFocus(UserIndex).IsSet() || Widget->HasUserFocusedDescendants(UserIndex);
-}
-
-bool FYCNKeyInputProcessor::IsPointerInside(const FPointerEvent& Event) const
-{
-	const TSharedPtr<SWidget> Widget = CaptureWidget.Pin();
-
-	return Widget.IsValid() && Widget->GetCachedGeometry().IsUnderLocation(Event.GetScreenSpacePosition());
-}
-
-void FYCNKeyInputProcessor::PressKey(const FKey& Key)
-{
-	if (!Key.IsValid())return;
-
-	PressedKeys.Add(Key);
-	// 一个会话只接受第一个有效键鼠按键。
-	if (CapturedKey.IsValid() || Key.IsGamepadKey() || !Key.IsDigital())return;
-
-	CapturedKey = Key;
-}
-
-void FYCNKeyInputProcessor::Finish()
-{
-	if (bFinished)return;
-
-	bFinished = true;
-
-	// 复制委托，允许接收方在回调里解除绑定。
-	const FOnCaptureFinished Callback = OnCaptureFinished;
-
-	Callback.ExecuteIfBound();
 }

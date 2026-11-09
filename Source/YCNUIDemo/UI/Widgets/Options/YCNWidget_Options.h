@@ -60,6 +60,7 @@ private:
 	//详情页
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UYCNWidget_DetailsBase>DetailsBase_Details;
+
 	/*
 	* BindWidget End----------
 	*/

@@ -7,6 +7,7 @@
 #include "YCNUIDemo/UI/ListData/YCNListData_Float.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Text.h"
 #include "YCNUIDemo/UI/ListData/YCNListData_Image.h"
+#include "YCNUIDemo/UI/ListData/YCNListData_None.h"
 #include "YCNUIDemo/Settings/YCNGameUserSettings.h"
 #include "GenericPlatform/GenericWindow.h"
 #include "Kismet/KismetSystemLibrary.h"
@@ -23,12 +24,12 @@ void UYCNListData_RegisterData::InitDataList()
 		UserSettings = UYCNGameUserSettings::Get();
 	}
 
-	InitControllerList();
 	InitKeyboardMouseList();
 	InitDisplayList();
 	InitHDList();
 	InitAudioList();
 	InitAssistList();
+	InitAboutList();
 	InitQuitList();
 }
 
@@ -44,20 +45,15 @@ UYCNListData_Tab* UYCNListData_RegisterData::GetDataByDataID(const FName& InData
 	return nullptr;
 }
 
-void UYCNListData_RegisterData::InitControllerList()
-{
-	UYCNListData_Tab* ControllerTab = NewObject<UYCNListData_Tab>();
-	CreateTabData(ControllerTab, FName("ControllerTab"), SetDataText(TEXT("控制器")));
-	{
-		
-	}
-}
-
 void UYCNListData_RegisterData::InitKeyboardMouseList()
 {
 	UYCNListData_Tab* KeyboardMouseTab = NewObject<UYCNListData_Tab>();
 	CreateTabData(KeyboardMouseTab, TEXT("KeyboardMouseTab"), SetDataText(TEXT("键盘与鼠标")));
 	{
+		UYCNListData_None* ControlKey = NewObject<UYCNListData_None>();
+		ControlKey->SetDataID(FName("ControlKey"));
+		KeyboardMouseTab->AddChildData(ControlKey);
+
 		UYCNListData_Image* UserKeys = NewObject<UYCNListData_Image>();
 		CreateImageData(
 			UserKeys, TEXT("UserKeys"), SetDataText(TEXT("自定义键位")), FText::GetEmpty(), KeyboardMouseTab,
@@ -541,6 +537,12 @@ void UYCNListData_RegisterData::InitAssistList()
 		true,
 		&UYCNGameUserSettings::GetbSubtitle, &UYCNGameUserSettings::SetbSubtitle, AssistTab);
 
+}
+
+void UYCNListData_RegisterData::InitAboutList()
+{
+	UYCNListData_Tab* AboutTab = NewObject<UYCNListData_Tab>();
+	CreateTabData(AboutTab, TEXT("AboutTab"), SetDataText(TEXT("关于")));
 }
 
 void UYCNListData_RegisterData::InitQuitList()

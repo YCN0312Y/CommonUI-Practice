@@ -59,9 +59,6 @@ public:
 	FOnSettingsValueChanged OnSettingValueChanged;
 
 private:
-	//初始化控制设置
-	void InitControllerList();
-
 	//初始化键盘与鼠标设置
 	void InitKeyboardMouseList();
 
@@ -79,6 +76,9 @@ private:
 
 	//初始化帮助设置
 	void InitQuitList();
+
+	//初始化关于
+	void InitAboutList();
 
 	//获取最大分辨率值
 	FText GetMaxResolutionText();

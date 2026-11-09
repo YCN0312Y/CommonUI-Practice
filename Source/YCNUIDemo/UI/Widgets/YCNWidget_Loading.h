@@ -31,11 +31,6 @@ protected:
 	//销毁
 	virtual void NativeDestruct()override;
 
-protected:
-	// 资源加载成功且达到此展示时长后，才进入任意键界面。0 表示不额外等待。
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "YCN|Loading", meta = (ClampMin = "0.0", UIMin = "0.0", Units = "s"))
-	float MinimumDisplayTime = 1.5f;
-
 private:
 	//背景
 	UPROPERTY(meta = (BindWidget))
@@ -67,13 +62,14 @@ private:
 	//完成
 	bool bFinishing = false;
 
-	// 使用单调时钟记录本次展示的开始时间。
-	double LoadingStartTime = 0.0;
-
 	FTimerHandle RefreshHandle;
 
 private:
+	//刷新加载
 	void RefreshLoading();
 
 	void Opclied_Retry();
+
+	//清理刷新句柄
+	void ClearRefreshHandle(FTimerHandle InHandle);
 };

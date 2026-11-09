@@ -16,3 +16,18 @@ void UYCNListData_Image::SetPreviewKey(const FKey& InKey)
 {
 	PreviewKey = InKey;
 }
+
+void UYCNListData_Image::SetWaitingForInput(bool bInWaitingForInput)
+{
+	bWaitingForInput = bInWaitingForInput;
+}
+
+bool UYCNListData_Image::CanResetToDefault() const
+{
+	return SettingBinding.CanResetToDefault();
+}
+
+bool UYCNListData_Image::ResetToDefault() const
+{
+	return SettingBinding.ResetToDefault();
+}

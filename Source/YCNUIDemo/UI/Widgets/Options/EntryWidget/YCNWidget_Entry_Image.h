@@ -8,6 +8,7 @@
 
 class UYCNListData_Image;
 class UCommonLazyImage;
+class UCommonTextBlock;
 
 UCLASS(Abstract, BlueprintType, meta = (DisableNativeTick))
 class YCNUIDEMO_API UYCNWidget_Entry_Image : public UYCNWidget_EntryBase
@@ -34,13 +35,26 @@ public:
 	//刷新条目数据
 	virtual void RefreshEntryData()override;
 
+	void SetClickTextStyleAndText();
+
 private:
 	//图标
 	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
 	TObjectPtr<UCommonLazyImage>CommonImage_Icon;
 
+	//抹擦图标
+	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidget, AllowPrivateAccess = "true"))
+	TObjectPtr<UCommonLazyImage>CommonImage_ClickedIcon;
+
+	//点击显示文本
+	UPROPERTY(BlueprintReadOnly, Category = "YCN Widget", meta = (BindWidgetOptional, AllowPrivateAccess = "true"))
+	TObjectPtr<UCommonTextBlock>CommonText_ClickText;
+
 	//持有的值数据
 	UPROPERTY(Transient)
 	TObjectPtr<UYCNListData_Image>OwningValueData;
+
+	UPROPERTY(EditDefaultsOnly, Category = "YCN Widget|Style")
+	TSubclassOf<UCommonTextStyle>TextStyle_Error;
 
 };
