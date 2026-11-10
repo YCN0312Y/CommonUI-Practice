@@ -71,6 +71,8 @@ void UYCNWidgetManagerSubsystem::PushConfirmationToStack(EConfirmationWindowsTyp
 	case EConfirmationWindowsType::YesNO:
 		PushWindowInfo = UYCNWindowInfo::CreateYesNoButton(InWinodwMessageText);
 		break;
+	case EConfirmationWindowsType::None:
+		return;
 	}
 
 	UAssetManager::GetStreamableManager().RequestAsyncLoad(

@@ -45,21 +45,19 @@ function M:OnMainStackReady()
     end
 
     -- 启动时先显示加载窗口。
-    local WidgetTag = PC.WidgetTagList:Find("StartupLoading")
+    local WidgetTag = PC.WidgetTagList:Find("AnyKey")
 
     -- 加载窗口覆盖在 Modal 层。
-    local StackTag = PC.StackTagList:Find("Modal")
+    local StackTag = PC.StackTagList:Find("Menu")
 
     if not WidgetTag or not StackTag then
         print("启动失败：StartupLoading 或 Modal 标签未配置")
         return
     end
 
-    local SoftWidget =
-        YCNFunctionLibrary.GetSoftWidgetByTag(WidgetTag)
+    local SoftWidget = YCNFunctionLibrary.GetSoftWidgetByTag(WidgetTag)
 
-    local Action =
-        PushWidget.PushSoftWidget(self, StackTag, SoftWidget)
+    local Action = PushWidget.PushSoftWidget(self, StackTag, SoftWidget)
 
     if not Action then
         print("启动失败：无法创建加载窗口推送请求")

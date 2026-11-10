@@ -29,7 +29,7 @@ function M:BP_OnActivated()
 end
 
 function M:StopWidget()
-    self:aaaa()
+    UE.UGameplayStatics.OpenLevel(self, "/Game/Maps/L_GameMap", true, "")
 end
 
 return M

@@ -14,5 +14,4 @@ namespace YCNGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(YCN_Widget_Option, "YCN.Widget.Option");
 	UE_DEFINE_GAMEPLAY_TAG(YCN_Widget_OptionList, "YCN.Widget.OptionList");
 	UE_DEFINE_GAMEPLAY_TAG(YCN_Widget_KeyboardMouse, "YCN.Widget.KeyboardMouse");
-	UE_DEFINE_GAMEPLAY_TAG(YCN_Widget_StartupLoading, "YCN.Widget.StartupLoading");
 }

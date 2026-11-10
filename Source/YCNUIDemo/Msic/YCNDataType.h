@@ -9,6 +9,7 @@ enum class EConfirmationWindowsType : uint8
 {
 	OK,
 	YesNO,
+	None,
 };
 
 //窗口按钮类型

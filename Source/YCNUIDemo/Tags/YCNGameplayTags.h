@@ -16,5 +16,4 @@ namespace YCNGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(YCN_Widget_Option);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(YCN_Widget_OptionList);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(YCN_Widget_KeyboardMouse);
-	UE_DECLARE_GAMEPLAY_TAG_EXTERN(YCN_Widget_StartupLoading);
 }

@@ -26,9 +26,9 @@ protected:
 
 protected:
     //控件输入模式
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "YCN|Input")
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "YCN Widget|Input")
     ECommonInputMode WidgetInputMode = ECommonInputMode::Menu;
     //游戏鼠标捕获模式
-    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "YCN|Input")
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "YCN Widget|Input")
     EMouseCaptureMode GameMouseCaptureMode = EMouseCaptureMode::CapturePermanently_IncludingInitialMouseDown;
 };

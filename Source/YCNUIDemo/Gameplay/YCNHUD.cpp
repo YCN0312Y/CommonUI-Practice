@@ -22,42 +22,39 @@ void AYCNHUD::BeginPlay()
     if (MainWidget.IsNull()) return;
 
     //使用弱指针保存对象引用
-    const TWeakObjectPtr<AYCNHUD> WeakHUD(this);
     const TWeakObjectPtr<APlayerController> WeakPC(PC);
-    const TWeakObjectPtr<UWorld> WeakWorld(GetWorld());
+    UWorld* World = GetWorld();
+    if (!World)return;
 
     //异步加载主堆栈
     UAssetManager::GetStreamableManager().RequestAsyncLoad(
         MainWidget.ToSoftObjectPath(),
         FStreamableDelegate::CreateLambda(
-            [WeakHUD, WeakPC, WeakWorld, MainWidget]()
+            [this, WeakPC, World, MainWidget]()
             {
-                AYCNHUD* HUD = WeakHUD.Get();
                 APlayerController* OwningPC = WeakPC.Get();
-                UWorld* ExpectedWorld = WeakWorld.Get();
 
-                if (IsValid(HUD) && IsValid(OwningPC) && IsValid(ExpectedWorld))
+                if (IsValid(OwningPC) && IsValid(World))
                 {
-                    if (HUD->GetWorld() == ExpectedWorld && OwningPC->GetWorld() == ExpectedWorld && OwningPC->IsLocalController())
+                    if (GetWorld() == World && OwningPC->GetWorld() == World && OwningPC->IsLocalController())
                     {
                         UClass* MainWidgetClass = MainWidget.Get();
 
                         if (IsValid(MainWidgetClass))
                         {
-                            UYCNWidgetManagerSubsystem* WidgetManager = UYCNWidgetManagerSubsystem::Get(HUD);
+                            UYCNWidgetManagerSubsystem* WidgetManager = UYCNWidgetManagerSubsystem::Get(this);
                             if (IsValid(WidgetManager))
                             {
-
                                 //创建主堆栈 Widget
                                 UYCNWidget_MainStack* CreatedMainStack = CreateWidget<UYCNWidget_MainStack>(OwningPC, MainWidgetClass);
                                 if (IsValid(CreatedMainStack))
                                 {
                                     //注册主堆栈
                                     WidgetManager->RegisterMainStack(CreatedMainStack);
-                                    WidgetManager->SetOwningMainStackBackground(HUD->bIsVisibleBackground);
+                                    WidgetManager->SetOwningMainStackBackground(bIsVisibleBackground);
                                     //添加到本地玩家的屏幕
                                     CreatedMainStack->AddToPlayerScreen();
-                                    HUD->OnMainStackReady();
+                                    OnMainStackReady();
                                 }
                             }
 

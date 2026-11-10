@@ -543,6 +543,11 @@ void UYCNListData_RegisterData::InitAboutList()
 {
 	UYCNListData_Tab* AboutTab = NewObject<UYCNListData_Tab>();
 	CreateTabData(AboutTab, TEXT("AboutTab"), SetDataText(TEXT("关于")));
+	{
+		UYCNListData_Text* Producer = NewObject<UYCNListData_Text>();
+		CreateTextData(Producer, FName("Producer"), SetDataText(TEXT("制作人")), SetDataText(TEXT("制作人：渝常念\n\n引擎版本：Unreal Engine 5.3.2\n\n版本：V1.0")),
+			EConfirmationWindowsType::None, FText::GetEmpty(), {}, AboutTab);
+	}
 }
 
 void UYCNListData_RegisterData::InitQuitList()

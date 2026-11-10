@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogYCNCommonUI, Display, All);
+DEFINE_LOG_CATEGORY_STATIC(LogYCNLoaging, Display, All);
 
 namespace YCNDebug
 {
